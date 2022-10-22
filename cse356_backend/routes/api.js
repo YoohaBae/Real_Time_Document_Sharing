@@ -1,6 +1,9 @@
 const express = require('express'), router = express.Router();
 
 router.get('/connect/', (req, res) => {
+    const id = req.params.id;
+    const event = req.body.event;
+    const data = req.body.data;
     res.send("Hello Connection")
 })
 
