@@ -1,9 +1,3 @@
-import * as Y from 'yjs'
-import { WebrtcProvider } from 'y-webrtc'
-import { WebsocketProvider } from 'y-websocket'
-import { IndexeddbPersistence } from 'y-indexeddb'
-
-
 class CRDTFormat {
   public bold?: Boolean = false;
   public italic?: Boolean = false;
