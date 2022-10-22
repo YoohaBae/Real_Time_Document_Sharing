@@ -1,4 +1,8 @@
-// ... add imports and fill in the code
+import * as Y from 'yjs'
+import { WebrtcProvider } from 'y-webrtc'
+import { WebsocketProvider } from 'y-websocket'
+import { IndexeddbPersistence } from 'y-indexeddb'
+
 
 class CRDTFormat {
   public bold?: Boolean = false;
