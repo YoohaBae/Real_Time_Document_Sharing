@@ -1,3 +1,5 @@
+import * as Y from 'yjs'
+
 class CRDTFormat {
   public bold?: Boolean = false;
   public italic?: Boolean = false;
@@ -8,7 +10,7 @@ exports.CRDT = class {
   // ...
 
   constructor(cb: (update: string, isLocal: Boolean) => void) {
-    // ...
+    const doc = new Y.Doc();
     ['update', 'insert', 'delete', 'toHTML'].forEach(f => (this as any)[f] = (this as any)[f].bind(this));
   }
 
