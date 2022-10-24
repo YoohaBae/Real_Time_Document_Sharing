@@ -18,20 +18,40 @@
         //     }
         // }
         //
-        // function establishConnection(documentID) {
-        //     const xmlHttp = new XMLHttpRequest();
-        //     let url = "http://localhost:8080/api/connect/" + documentID;
-        //     xmlHttp.open("GET", url, true);
-        //     xmlHttp.send();
-        // }
-        //
+        function establishConnection(documentID) {
+            let url = "http://localhost:80/api/connect/" + documentID;
+            let eventSource = new EventSource(url);
+            eventSource.onopen = function (e) {
+                console.log("Event: open");
+            };
+
+            eventSource.onerror = function (e) {
+                console.log("Event: error");
+                if (this.readyState === EventSource.CONNECTING) {
+                    console.log(`Reconnecting (readyState=${this.readyState})...`);
+                } else {
+                    console.log("Error has occured.");
+                }
+            };
+
+            eventSource.addEventListener('bye', function (e) {
+                console.log("Event: bye, data: " + e.data);
+            });
+
+            eventSource.onmessage = function (e) {
+                console.log("Event: message, data: " + e.data);
+            };
+        }
+
         function updateCb(update) {
             document.write('<nobr>update> ', update, '</nobr><br/>');
         }
+
         //
         // let documentID = getDocumentID();
         // console.log(documentID)
-        // establishConnection(documentID);
+        let documentID = 1;
+        establishConnection(documentID);
         var crdt = new exports.CRDT(updateCb);
         crdt.insert(0, 'Hello');
         crdt.insert(5, 'World', {bold: true});

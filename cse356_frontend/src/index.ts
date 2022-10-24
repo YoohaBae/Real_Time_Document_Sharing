@@ -7,9 +7,9 @@ class CRDTFormat {
 };
 
 exports.CRDT = class {
-    doc = new Y.Doc()
-    text = this.doc.getText('test')
-    cb: (update: string, isLocal: Boolean) => void
+    doc = new Y.Doc();
+    text = this.doc.getText('test');
+    cb: (update: string, isLocal: Boolean) => void;
 
     constructor(cb: (update: string, isLocal: Boolean) => void) {
         this.cb = cb;
