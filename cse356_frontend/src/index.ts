@@ -9,22 +9,25 @@ class CRDTFormat {
 exports.CRDT = class {
     doc = new Y.Doc()
     text = this.doc.getText('test')
+    cb: (update: string, isLocal: Boolean) => void
 
     constructor(cb: (update: string, isLocal: Boolean) => void) {
-        console.log(cb);
+        this.cb = cb;
         ['update', 'insert', 'delete', 'toHTML'].forEach(f => (this as any)[f] = (this as any)[f].bind(this));
     }
 
     update(update: string) {
-        console.log(update);
+        console.log(update)
     }
 
     insert(index: number, content: string, format: CRDTFormat) {
         this.text.insert(index, content, format);
+        this.cb(this.toHTML(), false);
     }
 
     delete(index: number, length: number) {
         this.text.delete(index, length);
+        this.cb(this.toHTML(), false);
     }
 
     toHTML() {
@@ -37,15 +40,17 @@ exports.CRDT = class {
             if (action["insert"] !== undefined) {
                 // @ts-ignore
                 let curr = action["insert"]
+                curr = curr.replace("\r\n", "\n").replace("\n", "<br />");
+
                 // @ts-ignore
                 if (action["attributes"] !== undefined) {
                     // @ts-ignore
                     let attribute = action["attributes"]
                     if (attribute["bold"] == true) {
-                        curr = '<b>' + curr + '</b>'
+                        curr = '<strong>' + curr + '</strong>'
                     }
                     if (attribute["italic"] == true) {
-                        curr = '<i>' + curr + '</i>'
+                        curr = '<em>' + curr + '</em>'
                     }
                     if (attribute["underline"] == true) {
                         curr = '<u>' + curr + '</u>'
@@ -54,8 +59,7 @@ exports.CRDT = class {
                 html = html + curr;
             }
         }
-        console.log(html)
-        console.log(delta)
+        html = '<p>' + html + '</p>'
         return html;
     }
 };
