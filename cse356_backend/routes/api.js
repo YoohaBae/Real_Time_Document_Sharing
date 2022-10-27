@@ -9,7 +9,6 @@ const persistence = new LeveldbPersistence('./db-storage')
 
 router.get('/connect/:id', async (req, res) => {
     const id = req.params.id.toString();
-    console.log("received request")
     res.writeHead(200, {
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Connection': 'keep-alive',
@@ -24,13 +23,13 @@ router.get('/connect/:id', async (req, res) => {
     function write() {
         res.write('data: ' + i + '\n\n');
     }
-
 })
 
 router.post('/op/:id', (req, res) => {
     const id = req.params.id.toString();
     const message = req.body;
-    //persistence.getYDoc(id)
+    let ydoc = persistence.getYDoc(id)
+    let text = ydoc.getText('test')
     res.send("Successfully pushed event")
 })
 

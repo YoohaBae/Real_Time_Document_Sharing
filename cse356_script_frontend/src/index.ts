@@ -4,7 +4,7 @@ class CRDTFormat {
     public bold?: Boolean = false;
     public italic?: Boolean = false;
     public underline?: Boolean = false;
-};
+}
 
 exports.CRDT = class {
     doc = new Y.Doc();
