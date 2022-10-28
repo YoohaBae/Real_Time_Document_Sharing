@@ -1,5 +1,6 @@
 const express = require('express');
 const yjs = require('yjs');;
+
 const {LeveldbPersistence} = require('y-leveldb');
 const router = express.Router();
 
@@ -22,19 +23,33 @@ router.get('/connect/:id', async (req, res) => {
     } else {
         yDoc = new yjs.Doc();
     }
-    let data = yDoc.getText('test');
+
+
+    let data = yDoc.getText('test').toDelta();
     write(event, data);
 
-    function write() {
-        res.write('data: ' + i + '\n\n');
+
+    yDoc.on('update', update => {
+        res.write(update);
+    })
+
+
+    function write(event, data) {
+        let message = {
+            "event": event,
+            "data": data
+        }
+        res.write(JSON.stringify(message));
     }
 })
 
 router.post('/op/:id', (req, res) => {
     const id = req.params.id.toString();
-    const message = req.body;
-    let ydoc = persistence.getYDoc(id)
-    let text = ydoc.getText('test')
+    const data = req.body.data;
+    //let ydoc = persistence.getYDoc(id)
+    let ydoc = yDocs[id];
+    let text = ydoc.getText('test');
+    text.applyDelta(data);
     res.send("Successfully pushed event")
 })
 
