@@ -3,11 +3,19 @@ import {useParams} from "react-router-dom";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import urlJoin from "url-join";
+import * as Y from 'yjs';
 
 const {REACT_APP_BACKEND_URL} = process.env;
 
 const Document = (props) => {
     let documentID = useParams().id;
+    const ydoc = new Y.Doc()
+    const ytext = ydoc.getText('test');
+
+    const updateCb = (update) => {
+        document.write('<nobr>update> ', update, '</nobr><br/>');
+    }
+
 
 
     useEffect(() => {
