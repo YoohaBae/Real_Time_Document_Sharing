@@ -1,5 +1,6 @@
 const express = require('express');
-const yjs = require('yjs');
+const yjs = require('yjs');;
+
 const {LeveldbPersistence} = require('y-leveldb');
 const router = express.Router();
 
@@ -22,10 +23,8 @@ router.get('/connect/:id', async (req, res) => {
     } else {
         yDoc = new yjs.Doc();
     }
-    yDoc.getText('test').insert(0, 'Hello');
-    yDoc.getText('test').insert(5, 'World', {bold: true});
-    yDoc.getText('test').insert(5, ' ');
-    yDoc.getText('test').insert(12, '!');
+
+
     let data = yDoc.getText('test').toDelta();
     write(event, data);
 
@@ -33,6 +32,7 @@ router.get('/connect/:id', async (req, res) => {
     yDoc.on('update', update => {
         res.write(update);
     })
+
 
     function write(event, data) {
         let message = {

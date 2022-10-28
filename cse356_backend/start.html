@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Start Page</title>
+</head>
+<body>
+<label for="docid">Document ID:</label>
+<input type="text" id="docid"/>
+<input type="button" value="Open" onclick="goToPage()"/>
+<script>
+    function goToPage() {
+        let documentID = document.getElementById('docid').value;
+        window.location = "/index.html?id=" + documentID;
+    }
+</script>
+</body>
+</html>
