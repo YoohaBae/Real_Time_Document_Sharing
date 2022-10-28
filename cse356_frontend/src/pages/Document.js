@@ -19,9 +19,14 @@ const Document = (props) => {
         sse.onopen = () => {
             console.log("Sse open");
         }
-        sse.onmessage = (event) => {
-            console.log(event.data)
-        }
+        sse.addEventListener('sync', (event) => {
+            let data = JSON.parse(event.data);
+            console.log(data);
+        })
+        sse.addEventListener('update', (event) => {
+            let data = JSON.parse(event.data);
+            console.log(data);
+        })
         return () => {
             sse.close();
         };
