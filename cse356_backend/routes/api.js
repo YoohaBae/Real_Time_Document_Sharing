@@ -1,10 +1,10 @@
 const express = require('express');
-const yjs = require('yjs')
+const yjs = require('yjs');
 const {LeveldbPersistence} = require('y-leveldb');
 const router = express.Router();
 
 const yDocs = {}
-const persistence = new LeveldbPersistence('./db-storage')
+//const persistence = new LeveldbPersistence('./db-storage')
 
 
 router.get('/connect/:id', async (req, res) => {
@@ -14,22 +14,41 @@ router.get('/connect/:id', async (req, res) => {
         'Connection': 'keep-alive',
         'Cache-Control': 'no-cache'
     });
-    let i = 0;
-    for (i === 0; i < 100; i++) {
-        write();
-        await new Promise(resolve => setTimeout(resolve, 1000));
+    let yDoc = null;
+    let event = "sync";
+    if (yDocs[id] !== undefined) {
+        yDoc = yDocs[id];
+    } else {
+        yDoc = new yjs.Doc();
     }
+    let data = yDoc.getText('test');
+    write(event, data);
 
-    function write() {
-        res.write('data: ' + i + '\n\n');
+
+
+    function write(event, data) {
+        res.write({
+            "event": event,
+            "data": data
+        });
     }
 })
 
 router.post('/op/:id', (req, res) => {
     const id = req.params.id.toString();
-    const message = req.body;
-    let ydoc = persistence.getYDoc(id)
-    let text = ydoc.getText('test')
+    const body = req.body;
+    let operation = body["operation"];
+    let index = body["index"];
+    let content = body["content"];
+    let format = body["format"];
+    //let ydoc = persistence.getYDoc(id)
+    let ydoc = yDocs[id];
+    let text = ydoc.getText('test');
+    if (operation === "insert") {
+        text.insert(parseInt(index), content, format);
+    } else if (operation === "delete") {
+        text.delete(parseInt(index), parseInt(content));
+    }
     res.send("Successfully pushed event")
 })
 
