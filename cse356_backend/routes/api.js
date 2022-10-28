@@ -18,37 +18,38 @@ router.get('/connect/:id', async (req, res) => {
     let event = "sync";
     if (yDocs[id] !== undefined) {
         yDoc = yDocs[id];
+
     } else {
         yDoc = new yjs.Doc();
     }
-    let data = yDoc.getText('test');
+    yDoc.getText('test').insert(0, 'Hello');
+    yDoc.getText('test').insert(5, 'World', {bold: true});
+    yDoc.getText('test').insert(5, ' ');
+    yDoc.getText('test').insert(12, '!');
+    let data = yDoc.getText('test').toDelta();
     write(event, data);
 
 
+    yDoc.on('update', update => {
+        res.write(update);
+    })
 
     function write(event, data) {
-        res.write({
+        let message = {
             "event": event,
             "data": data
-        });
+        }
+        res.write(JSON.stringify(message));
     }
 })
 
 router.post('/op/:id', (req, res) => {
     const id = req.params.id.toString();
-    const body = req.body;
-    let operation = body["operation"];
-    let index = body["index"];
-    let content = body["content"];
-    let format = body["format"];
+    const data = req.body.data;
     //let ydoc = persistence.getYDoc(id)
     let ydoc = yDocs[id];
     let text = ydoc.getText('test');
-    if (operation === "insert") {
-        text.insert(parseInt(index), content, format);
-    } else if (operation === "delete") {
-        text.delete(parseInt(index), parseInt(content));
-    }
+    text.applyDelta(data);
     res.send("Successfully pushed event")
 })
 
