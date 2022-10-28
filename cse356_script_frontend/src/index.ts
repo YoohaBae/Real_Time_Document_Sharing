@@ -17,22 +17,42 @@ exports.CRDT = class {
     }
 
     update(update: string) {
-        console.log(update)
+        let message = JSON.parse(update);
+        let event = message["event"];
+        let data = message["data"];
+        if (event == "sync") {
+            this.doc = new Y.Doc();
+            this.text = this.doc.getText('test');
+            this.text.applyDelta(data);
+        } else {
+            Y.applyUpdate(this.doc, data);
+        }
     }
 
     insert(index: number, content: string, format: CRDTFormat) {
         this.text.insert(index, content, format);
         this.cb(this.toHTML(), false);
+        // let delta = [{
+        //     "retain": index
+        // }, {
+        //     "insert": content, "attributes": format
+        // }];
     }
 
     delete(index: number, length: number) {
         this.text.delete(index, length);
         this.cb(this.toHTML(), false);
+        // let delta = [{
+        //     "retain": index
+        // }, {
+        //     "delete": length
+        // }];
+        //TODO: send delta to /op/:id
     }
 
     toHTML() {
         let html = "";
-        let delta = this.doc.getText('test').toDelta()
+        let delta = this.doc.getText('test').toDelta();
         // @ts-ignore
         for (let index in delta) {
             // @ts-ignore
