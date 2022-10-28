@@ -8,17 +8,21 @@ import urlJoin from "url-join";
 import * as Y from 'yjs';
 import axios from 'axios';
 import * as base64 from "byte-base64";
-import {Buffer} from 'buffer';
 
 const {REACT_APP_BACKEND_URL} = process.env;
 
 Quill.register('modules/cursors', QuillCursors);
 
 const jsonStringToUint8Array = (jsonString) => {
-    let ret = new Uint8Array(jsonString.length);
-    for (let i = 0; i < jsonString.length; i++) {
-        ret[i] = jsonString.charCodeAt(i);
+    console.log("jsonString to Uint Array");
+    let json = JSON.parse(jsonString);
+    console.log(json);
+    let ret = new Uint8Array(Object.keys(json).length);
+    for (let key in json){
+        console.log( key, json[key] );
+        ret[key] = json[key];
     }
+    console.log(ret);
     return ret
 };
 
