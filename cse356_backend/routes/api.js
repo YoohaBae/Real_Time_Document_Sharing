@@ -11,15 +11,13 @@ const yDocs = {}
 router.get('/connect/:id', async (req, res) => {
     const id = req.params.id.toString();
     res.writeHead(200, {
-        'Content-Type': 'text/event-stream; charset=utf-8',
-        'Connection': 'keep-alive',
-        'Cache-Control': 'no-cache'
+        'Content-Type': 'text/event-stream',
+        'Connection', 'keep-alive'
     });
     let yDoc = null;
     let event = "sync";
     if (yDocs[id] !== undefined) {
         yDoc = yDocs[id];
-
     } else {
         yDoc = new yjs.Doc();
     }
