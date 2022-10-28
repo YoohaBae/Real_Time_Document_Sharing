@@ -30,8 +30,9 @@ router.get('/connect/:id', async (req, res) => {
         yDocs[docId] = yDoc;
     }
 
-    let data = yDoc.getText(docId).toDelta();
-    write(res, eventID, event, data);
+    let state = await yjs.encodeStateAsUpdate(yDoc);
+    console.log("sync data: "+ state);
+    write(res, eventID, event, state);
     eventID++;
 
     yDoc.on('update', update => {
@@ -49,11 +50,11 @@ router.post('/op/:id', async (req, res) => {
     const update = req.body.update;
     let array = toUint8Array(update);
     let ydoc = yDocs[docId];
-    console.log("operation");
-    console.log(array);
     //let ydoc = persistence.getYDoc(id)
-    yjs.applyUpdate(ydoc, array);
+    await yjs.applyUpdate(ydoc, array);
     yDocs[docId] = ydoc;
+    let data = yDocs[docId].getText(docId);
+    console.log("changed: " + data);
     res.send("Successfully pushed event")
 })
 
