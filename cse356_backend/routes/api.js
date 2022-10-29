@@ -5,6 +5,7 @@ const {LeveldbPersistence} = require('y-leveldb');
 const router = express.Router();
 
 const yDocs = {}
+
 //const persistence = new LeveldbPersistence('./db-storage')
 
 function write(res, id, event, data) {
@@ -31,15 +32,20 @@ router.get('/connect/:id', async (req, res) => {
     }
 
     let state = await yjs.encodeStateAsUpdate(yDoc);
-    console.log("sync data: "+ state);
-    write(res, eventID, event, state);
+    let message = {
+        "update": state,
+        "clientID": "sync"
+    }
+    write(res, eventID, event, message);
     eventID++;
 
-    yDoc.on('update', update => {
+    yDoc.on('update', (update, origin) => {
         let event = "update";
-        console.log("update!!")
-        console.log(update)
-        write(res, eventID, event, update);
+        let message = {
+            "update": update,
+            "clientID": origin
+        }
+        write(res, eventID, event, message);
         eventID++;
     })
 })
@@ -51,7 +57,7 @@ router.post('/op/:id', async (req, res) => {
     let array = toUint8Array(update);
     let ydoc = yDocs[docId];
     //let ydoc = persistence.getYDoc(id)
-    await yjs.applyUpdate(ydoc, array);
+    yjs.applyUpdate(ydoc, array, clientID);
     yDocs[docId] = ydoc;
     let data = yDocs[docId].getText(docId);
     console.log("changed: " + data);

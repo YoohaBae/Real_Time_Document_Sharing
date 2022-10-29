@@ -30,6 +30,11 @@ app.get("/", (req, res) => {
     res.sendFile("/root/CSE356_Milestones/cse356_backend/start.html")
 })
 
+app.post("/log", (req, res) => {
+    console.log(req.body)
+    res.send("Received");
+})
+
 app.listen(port, () => {
     console.log(`server is listening at localhost:80`);
 });

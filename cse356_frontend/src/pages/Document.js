@@ -8,24 +8,25 @@ import urlJoin from "url-join";
 import * as Y from 'yjs';
 import axios from 'axios';
 import * as base64 from "byte-base64";
-import {applyUpdate} from "yjs";
 
 const {REACT_APP_BACKEND_URL} = process.env;
 
 Quill.register('modules/cursors', QuillCursors);
 
 const jsonStringToUint8Array = (jsonString) => {
-    let json = JSON.parse(jsonString);
-    let ret = new Uint8Array(Object.keys(json).length);
-    for (let key in json) {
-        console.log(key, json[key]);
-        ret[key] = json[key];
+    let json = JSON.parse(jsonString)
+    let clientID = json["clientID"];
+    let ret = null;
+    let update = json["update"]
+    ret = new Uint8Array(Object.keys(update).length);
+    for (let key in update) {
+        // @ts-ignore
+        ret[key] = update[key];
     }
-    return ret
+    return [clientID, ret]
 };
 
-const Document = (props) => {
-    const [value, setValue] = useState('');
+const Document = () => {
     let documentID = useParams().id;
 
     useEffect(() => {
@@ -56,23 +57,19 @@ const Document = (props) => {
             console.log("Sse open");
         }
 
-        sse.addEventListener('sync', async (event) => {
-            let data = jsonStringToUint8Array(event.data);
-            console.log("sync");
-            console.log("apply delta: " + data);
-            console.log("original ytext: " + ytext);
-            await Y.applyUpdate(ydoc, data);
-            console.log("later ytext: " + ytext);
+        sse.addEventListener('sync', (event) => {
+            let [clientID, data] = jsonStringToUint8Array(event.data);
+            Y.applyUpdate(ydoc, data);
         })
-        sse.addEventListener('update', async (event) => {
-            let data = jsonStringToUint8Array(event.data);
-            console.log("update");
-            console.log(data);
-            await Y.applyUpdate(ydoc, data);
+        sse.addEventListener('update', (event) => {
+            let [clientID, data] = jsonStringToUint8Array(event.data);
+
+            if (clientID !== ydoc.clientID) {
+                Y.applyUpdate(ydoc, data);
+            }
         })
 
         ydoc.on('update', (update, origin, doc) => {
-            console.log("updated!!!")
             let message = ({
                 clientID: ydoc.clientID,
                 update: base64.bytesToBase64(update)
