@@ -3,7 +3,7 @@
     <script>
         var exports = {};
     </script>
-    <script src="crdt.js"></script>
+    <script src="library/crdt.js"></script>
     <script>
         function getDocumentID() {
             let pageUrl = window.location.search.substring(1);
@@ -19,7 +19,7 @@
         }
 
         function establishConnection(documentID) {
-            let url = "http://localhost:80/api/connect/" + documentID;
+            let url = "http://iwomm.cse356.compas.cs.stonybrook.edu/api/connect/" + documentID;
             let eventSource = new EventSource(url);
             eventSource.onopen = function (e) {
                 console.log("Event: open");
