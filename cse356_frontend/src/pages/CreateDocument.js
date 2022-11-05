@@ -1,20 +1,20 @@
 import {useNavigate} from 'react-router-dom';
 import {useState} from "react";
 
-const StartPage = () => {
+const CreateDocument = () => {
     const [docID, setDocID] = useState('')
     const navigate = useNavigate();
     const handleChange = (event) => {
         setDocID(event.target.value);
     }
-    const openDocument = (event) => {
+    const createDocument = (event) => {
         event.preventDefault();
         navigate(`/doc/${docID}`);
     }
     return (<div>
-        <Link to={"/login"}>Login</Link>
-        <Link to={"/auth"}>Auth</Link>
-        <Link to={"/doc"}>Create Document</Link>
+        <label htmlFor="documentID">Document ID:</label>
+        <input type="text" id="documentID" name={"documentID"} onChange={handleChange}/>
+        <input type="button" value="Create" onClick={createDocument}/>
     </div>)
 }
-export default StartPage;
+export default CreateDocument;
