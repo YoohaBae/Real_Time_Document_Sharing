@@ -12,6 +12,7 @@ const CreateDocument = () => {
         navigate(`/doc/${docID}`);
     }
     return (<div>
+        <h1>Create Document</h1>
         <label htmlFor="documentID">Document ID:</label>
         <input type="text" id="documentID" name={"documentID"} onChange={handleChange}/>
         <input type="button" value="Create" onClick={createDocument}/>
