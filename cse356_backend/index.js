@@ -7,6 +7,7 @@ const port = 80;
 
 const apiRoutes = require('./routes/api');
 const userRoutes = require('./routes/user');
+const mediaRoutes = require('./routes/media');
 const collectionRoutes = require('./routes/collection');
 const db = require('./db');
 
