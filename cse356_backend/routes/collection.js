@@ -1,13 +1,43 @@
 const express = require('express');
 const Collection = require('../models/collection-model');
+const User = require("../models/user-model");
 const router = express.Router();
+
+const auth = async (req, res, next) => {
+    const key = req.cookies.key;
+    if (!key) {
+        res.send({
+            error: true,
+            message: 'User is not authenticated',
+        });
+    } else {
+        try {
+            const user = await User.findOne({key});
+            if (!user) {
+                res.send({
+                    error: true,
+                    message: 'User is not authenticated',
+                });
+            } else {
+                next();
+            }
+        } catch {
+            res.send({
+                error: true,
+                message: 'User is not authenticated',
+            });
+        }
+    }
+};
+
+router.use(auth);
 
 async function saveCollection(name) {
     try {
         let now = Date.now()
         const newCollection = new Collection({"name": name, "editTime": now});
         return await newCollection.save();
-    } catch (err){
+    } catch (err) {
         return null
     }
 }
@@ -36,11 +66,10 @@ router.post('/create', async (req, res) => {
     let collection = await saveCollection(collectionName);
     if (collection == null) {
         res.send({
-            error:true,
+            error: true,
             message: 'Database Error, Document creation unsuccessful',
         })
-    }
-    else {
+    } else {
         let id = collection.id;
         res.send({
             "id": id
@@ -54,11 +83,10 @@ router.post('/delete', async (req, res) => {
     console.log(collection);
     if (!collection) {
         res.send({
-            error:true,
+            error: true,
             message: 'Unable to delete collection',
         })
-    }
-    else {
+    } else {
         res.send()
     }
 })
@@ -67,11 +95,10 @@ router.post('/list', async (req, res) => {
     let collections = await getRecentCollections();
     if (collections == null) {
         res.send({
-            error:true,
+            error: true,
             message: 'Unable to retrieve list of collections',
         })
-    }
-    else {
+    } else {
         res.send(collections)
     }
 })
