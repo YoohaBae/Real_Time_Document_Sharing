@@ -41,6 +41,7 @@ async function sendVerificationEmail(email) {
   try {
     const user = await User.findOneAndUpdate({ email }, { key });
     if (!user) return;
+    // Send Email
     let transporter = nodemailer.createTransport({
       host: '127.0.0.1',
       port: 25,
