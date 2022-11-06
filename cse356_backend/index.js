@@ -7,6 +7,7 @@ const port = 80;
 
 const apiRoutes = require('./routes/api');
 const userRoutes = require('./routes/user');
+const collectionRoutes = require('./routes/collection');
 const db = require('./db');
 
 app.use(cors());
@@ -23,6 +24,7 @@ app.use((req, res, next) => {
 
 app.use('/api', apiRoutes);
 app.use('/users', userRoutes);
+app.use('/collection', collectionRoutes);
 
 app.get('/library/crdt.js', (req, res) => {
   res.sendFile('/root/CSE356_Milestones/cse356_backend/public/library/crdt.js');

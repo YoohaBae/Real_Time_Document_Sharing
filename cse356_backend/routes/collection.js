@@ -5,23 +5,22 @@ const router = express.Router();
 async function saveCollection(name) {
     try {
         let now = Date.now()
-        const newCollection = new Collection({name, now});
+        const newCollection = new Collection({"name": name, "editTime": now});
         return await newCollection.save();
-    } catch {
+    } catch (err){
         return null
     }
 }
 
 async function deleteCollection(id) {
-    try {
-        Collection.deleteOne({
-            id: id
-        }).then(function() {
-            return true
-        })
-    } catch {
-        return false
-    }
+    return await Collection.deleteOne({
+        id: id.toString()
+    }).then(function () {
+        return true;
+    }).catch((err) => {
+        console.log(err);
+        return false;
+    });
 }
 
 async function getRecentCollections() {
@@ -52,6 +51,7 @@ router.post('/create', async (req, res) => {
 router.post('/delete', async (req, res) => {
     let collectionId = req.body.id;
     let collection = await deleteCollection(collectionId);
+    console.log(collection);
     if (!collection) {
         res.send({
             error:true,
@@ -74,7 +74,6 @@ router.post('/list', async (req, res) => {
     else {
         res.send(collections)
     }
-    res.send("Successfully listed document")
 })
 
 module.exports = router;

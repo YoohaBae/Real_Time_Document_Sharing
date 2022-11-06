@@ -7,7 +7,7 @@ const CollectionSchema = new Schema(
   {
     name: { type: String, required: true },
     editTime: {type: Date, required: true},
-    id: { type: Number},
+    id: { type: Number, unique: true},
 
   },
   { timestamps: true }
