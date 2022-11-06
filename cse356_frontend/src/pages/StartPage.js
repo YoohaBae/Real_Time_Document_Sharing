@@ -1,20 +1,12 @@
-import {useNavigate} from 'react-router-dom';
-import {useState} from "react";
+import {Link} from 'react-router-dom';
 
 const StartPage = () => {
-    const [docID, setDocID] = useState('')
-    const navigate = useNavigate();
-    const handleChange = (event) => {
-        setDocID(event.target.value);
-    }
-    const openDocument = (event) => {
-        event.preventDefault();
-        navigate(`/doc/${docID}`);
-    }
     return (<div>
-        <label htmlFor="documentID">Document ID:</label>
-        <input type="text" id="documentID" name={"documentID"} onChange={handleChange}/>
-        <input type="button" value="Open" onClick={openDocument}/>
+        <Link to={"/login"}>Login</Link>
+        <br/>
+        <Link to={"/auth"}>Auth</Link>
+        <br/>
+        <Link to={"/doc"}>Create Document</Link>
     </div>)
 }
 export default StartPage;

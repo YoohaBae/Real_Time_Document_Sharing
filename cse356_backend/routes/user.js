@@ -52,7 +52,7 @@ async function sendVerificationEmail(email) {
     });
     console.log('transporter configuration done');
 
-    let html_content = `http://iwomm.cse356.compas.cs.stonybrook.edu/verify?email=${encodeURIComponent(
+    let html_content = `http://iwomm.cse356.compas.cs.stonybrook.edu/users/verify?email=${encodeURIComponent(
       email
     )}&key=${key}`;
 
