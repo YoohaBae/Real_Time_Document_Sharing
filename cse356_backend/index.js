@@ -8,6 +8,7 @@ const port = 80;
 const apiRoutes = require('./routes/api');
 const userRoutes = require('./routes/user');
 const mediaRoutes = require('./routes/media');
+const collectionRoutes = require('./routes/collection');
 const db = require('./db');
 
 app.use(cors());
@@ -24,6 +25,7 @@ app.use((req, res, next) => {
 
 app.use('/api', apiRoutes);
 app.use('/users', userRoutes);
+app.use('/collection', collectionRoutes);
 app.use('/media', mediaRoutes);
 
 app.get('/library/crdt.js', (req, res) => {
