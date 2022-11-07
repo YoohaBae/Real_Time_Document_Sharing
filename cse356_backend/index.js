@@ -24,6 +24,7 @@ app.use((req, res, next) => {
 
 app.use('/api', apiRoutes);
 app.use('/users', userRoutes);
+app.use('/media', mediaRoutes);
 
 app.get('/library/crdt.js', (req, res) => {
   res.sendFile('/root/CSE356_Milestones/cse356_backend/public/library/crdt.js');
