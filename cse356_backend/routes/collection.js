@@ -91,7 +91,7 @@ router.post('/delete', async (req, res) => {
     }
 })
 
-router.post('/list', async (req, res) => {
+router.get('/list', async (req, res) => {
     let collections = await getRecentCollections();
     if (collections == null) {
         res.send({

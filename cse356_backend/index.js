@@ -9,7 +9,6 @@ const apiRoutes = require('./routes/api');
 const userRoutes = require('./routes/user');
 const mediaRoutes = require('./routes/media');
 const collectionRoutes = require('./routes/collection');
-const db = require('./db');
 
 app.use(cors());
 
@@ -30,6 +29,7 @@ app.use('/media', mediaRoutes);
 
 app.get('/library/crdt.js', (req, res) => {
   res.sendFile('/root/CSE356_Milestones/cse356_backend/public/library/crdt.js');
+  //res.sendFile('/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/library/crdt.js');
 });
 
 app.get('/index.html', (req, res) => {
@@ -38,6 +38,17 @@ app.get('/index.html', (req, res) => {
 app.get('/', (req, res) => {
   res.sendFile('/root/CSE356_Milestones/cse356_backend/start.html');
 });
+
+app.get('/home', (req, res) => {
+  //res.sendFile('/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/home.html');
+  res.sendFile('/root/CSE356_Milestones/cse356_backend/public/home.html');
+});
+
+app.get('/edit/:id', (req, res) => {
+  //res.sendFile('/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/edit.html');
+  res.sendFile('/root/CSE356_Milestones/cse356_backend/public/edit.html');
+});
+
 
 app.post('/log', (req, res) => {
   console.log(req.body);
