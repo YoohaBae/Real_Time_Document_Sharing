@@ -3,6 +3,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const db = require('./db');
 const sessions = require('express-session');
+const path = require('path');
 
 const app = express();
 const port = 80;
@@ -12,6 +13,7 @@ const userRoutes = require('./routes/user');
 const mediaRoutes = require('./routes/media');
 const collectionRoutes = require('./routes/collection');
 
+const directory = path.join(__dirname, '../');
 app.use(cors());
 
 // app.use(express.static('public'))
@@ -39,31 +41,23 @@ app.use('/collection', collectionRoutes);
 app.use('/media', mediaRoutes);
 
 app.get('/library/crdt.js', (req, res) => {
-  //res.sendFile('/root/CSE356_Milestones/cse356_backend/public/library/crdt.js');
-  res.sendFile(
-    '/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/library/crdt.js'
-  );
+  res.sendFile(directory + 'cse356_backend/public/library/crdt.js');
 });
 
 app.get('/index.html', (req, res) => {
-  res.sendFile('/root/CSE356_Milestones/cse356_backend/index.html');
+  res.sendFile(directory + 'cse356_backend/index.html');
 });
+
 app.get('/', (req, res) => {
-  res.sendFile('/root/CSE356_Milestones/cse356_backend/start.html');
+  res.sendFile(directory + 'cse356_backend/start.html');
 });
 
 app.get('/home', (req, res) => {
-  res.sendFile(
-    '/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/home.html'
-  );
-  //res.sendFile('/root/CSE356_Milestones/cse356_backend/public/home.html');
+  res.sendFile(directory + 'cse356_backend/public/home.html');
 });
 
 app.get('/edit/:id', (req, res) => {
-  res.sendFile(
-    '/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/edit.html'
-  );
-  //res.sendFile('/root/CSE356_Milestones/cse356_backend/public/edit.html');
+  res.sendFile(directory + 'cse356_backend/public/edit.html');
 });
 
 app.post('/log', (req, res) => {
