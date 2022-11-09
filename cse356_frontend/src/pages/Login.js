@@ -1,6 +1,9 @@
 import {useNavigate} from 'react-router-dom';
 import {useState} from "react";
+import urlJoin from "url-join";
 import axios from "axios";
+
+const {REACT_APP_BACKEND_URL} = process.env;
 
 const Login = () => {
     const [email, setEmail] = useState('')
@@ -18,8 +21,10 @@ const Login = () => {
             "email": email,
             "password": password
         }
-        axios.post('http://localhost:80/users/login', userInfo)
-            .then(response => console.log(response));
+        axios.post(urlJoin(REACT_APP_BACKEND_URL, "/users/login"), userInfo)
+            .then(response => {
+                navigate("/")
+            });
     }
     return (<div>
         <h1>Login</h1>

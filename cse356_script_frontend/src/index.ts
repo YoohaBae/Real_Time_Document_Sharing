@@ -1,7 +1,6 @@
 import * as Y from 'yjs'
-import * as base64 from "byte-base64";
-
-// import axios from 'axios';
+// @ts-ignore
+import {QuillDeltaToHtmlConverter} from 'quill-delta-to-html';
 
 
 class CRDTFormat {
@@ -45,7 +44,7 @@ exports.CRDT = class {
         this.doc.on('update', (update) => {
             let message = ({
                 clientID: this.doc.clientID,
-                update: base64.bytesToBase64(update),
+                update: update,
                 parameter: {index, content, format}
             })
             this.cb(JSON.stringify(message), true);
@@ -59,7 +58,7 @@ exports.CRDT = class {
         this.doc.on('update', (update) => {
             let message = ({
                 clientID: this.doc.clientID,
-                update: base64.bytesToBase64(update),
+                update: update,
                 parameter: {index, length}
             })
             this.cb(JSON.stringify(message), true);
@@ -68,61 +67,12 @@ exports.CRDT = class {
     }
 
     toHTML() {
-        // axios.post('http://194.113.72.22/log' , {function: "toHTML"})
-        //             .then(response => console.log(response));
-        let html = "";
         let delta = this.doc.getText('test').toDelta();
         // @ts-ignore
-        for (let index in delta) {
-            // @ts-ignore
-            let action = delta[index]
-            if (action["insert"] !== undefined) {
-                // @ts-ignore
-                let curr = action["insert"]
-                curr = curr.replaceAll("\\r\\n", "\\n");
-                curr = curr.replaceAll("\r\n", "\n")
-                curr = curr.replaceAll("\\n", "<br/>");
-                curr = curr.replaceAll("\n", "<br/>");
-                // @ts-ignore
-                if (action["attributes"] !== undefined) {
-                    // @ts-ignore
-                    let attribute = action["attributes"]
-                    if (attribute["underline"] == true) {
-                        if (curr.includes("<br/>")) {
-                            curr = curr.replace("<br/>", "");
-                            curr = '<u>' + curr + '</u>';
-                            curr = curr + "<br/>"
-                        } else {
-                            curr = '<u>' + curr + '</u>';
-                        }
-                    }
-                    if (attribute["italic"] == true) {
-                        if (curr.includes("<br/>")) {
-                            curr = curr.replace("<br/>", "");
-                            curr = '<em>' + curr + '</em>';
-                            curr = curr + "<br/>"
-                        } else {
-                            curr = '<em>' + curr + '</em>';
-                        }
-                    }
-                    if (attribute["bold"] == true) {
-                        if (curr.includes("<br/>")) {
-                            curr = curr.replace("<br/>", "");
-                            curr = '<strong>' + curr + '</strong>';
-                            curr = curr + "<br/>"
-                        } else {
-                            curr = '<strong>' + curr + '</strong>'
-                        }
-                    }
-                    if (attribute["link"]) {
-                        const link = attribute["link"];
-                        curr = `<a href="${link}" target="_blank">` + curr + "</a>";
-                    }
-                }
-                html = html + curr;
-            }
+        let cfg = {
+            "paragraphTag": 'p'
         }
-        html = '<p>' + html + '</p>'
-        return html;
+        let converter = new QuillDeltaToHtmlConverter(delta, cfg);
+        return converter.convert();
     }
 };

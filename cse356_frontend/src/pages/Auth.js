@@ -1,19 +1,22 @@
 import {useNavigate} from 'react-router-dom';
 import {useState} from "react";
+import urlJoin from "url-join";
 import axios from "axios";
+
+const {REACT_APP_BACKEND_URL} = process.env;
 
 const Auth = () => {
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const navigate = useNavigate();
-    const handleNameChange  = (event) => {
+    const handleNameChange = (event) => {
         setName(event.target.value);
     }
-    const handleEmailChange  = (event) => {
+    const handleEmailChange = (event) => {
         setEmail(event.target.value);
     }
-    const handlePasswordChange  = (event) => {
+    const handlePasswordChange = (event) => {
         setPassword(event.target.value);
     }
     const createUser = (event) => {
@@ -23,8 +26,10 @@ const Auth = () => {
             "email": email,
             "password": password
         }
-        axios.post('http://localhost:80/users/signup', userInfo)
-            .then(response => console.log(response));
+        axios.post(urlJoin(REACT_APP_BACKEND_URL, '/users/signup'), userInfo, {withCredentials: true})
+            .then(response => {
+                navigate("/")
+            });
     }
     return (<div>
         <h1>Auth</h1>
