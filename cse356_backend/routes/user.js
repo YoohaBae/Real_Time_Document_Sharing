@@ -1,6 +1,7 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 const User = require('../models/user-model');
+const connections = require('../connections');
 
 const router = express.Router();
 
@@ -153,6 +154,9 @@ router.post('/login', async (req, res) => {
     return;
   } else {
     res.cookie('key', user.key, { httpOnly: true });
+    req.session.key = user.key;
+    console.log(req.session);
+    console.log(req.session.id);
   }
   res.send({
     name: user.name,
@@ -164,6 +168,13 @@ router.post('/logout', async (req, res) => {
     res.send();
   } else {
     res.clearCookie('key', { httpOnly: true });
+    if (connections[req.session.id]) {
+      connections[req.session.id].end();
+      delete connections[req.session.id];
+    }
+    req.session.destroy(function (err) {
+      console.log('Destroyed session');
+    });
     res.send();
   }
 });

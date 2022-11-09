@@ -4,6 +4,7 @@ const toUint8Array = require('base64-to-uint8array');
 const { LeveldbPersistence } = require('y-leveldb');
 const router = express.Router();
 const User = require('../models/user-model');
+const connections = require('../connections');
 
 const yDocs = {};
 
@@ -16,7 +17,7 @@ function write(res, id, event, data) {
 }
 
 const auth = async (req, res, next) => {
-  const key = req.cookies.key;
+  const key = req.session.key;
   if (!key) {
     res.send({
       error: true,
@@ -46,6 +47,7 @@ router.use(auth);
 
 router.get('/connect/:id', async (req, res) => {
   const docId = req.params.id.toString();
+  connections[req.session.id] = res;
   let eventID = 0;
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',

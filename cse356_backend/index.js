@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const db = require('./db');
+const sessions = require('express-session');
 
 const app = express();
 const port = 80;
@@ -18,6 +19,15 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
+app.use(
+  sessions({
+    secret: '6306d39f58d8bb3ef7f6bc99',
+    saveUninitialized: true,
+    cookie: { httpOnly: true },
+    resave: false,
+  })
+);
+
 app.use((req, res, next) => {
   res.setHeader('X-CSE356', '6306d39f58d8bb3ef7f6bc99');
   next();
@@ -30,7 +40,9 @@ app.use('/media', mediaRoutes);
 
 app.get('/library/crdt.js', (req, res) => {
   //res.sendFile('/root/CSE356_Milestones/cse356_backend/public/library/crdt.js');
-  res.sendFile('/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/library/crdt.js');
+  res.sendFile(
+    '/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/library/crdt.js'
+  );
 });
 
 app.get('/index.html', (req, res) => {
@@ -41,15 +53,18 @@ app.get('/', (req, res) => {
 });
 
 app.get('/home', (req, res) => {
-  res.sendFile('/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/home.html');
+  res.sendFile(
+    '/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/home.html'
+  );
   //res.sendFile('/root/CSE356_Milestones/cse356_backend/public/home.html');
 });
 
 app.get('/edit/:id', (req, res) => {
-  res.sendFile('/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/edit.html');
+  res.sendFile(
+    '/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/edit.html'
+  );
   //res.sendFile('/root/CSE356_Milestones/cse356_backend/public/edit.html');
 });
-
 
 app.post('/log', (req, res) => {
   console.log(req.body);
