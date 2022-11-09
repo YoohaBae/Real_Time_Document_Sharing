@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="collections">
+
+</div>
+<script>
+    const login = () => {
+        let body = {
+            "email": "Yooha.Bae@stonybrook.edu",
+            "password": "1234"
+        }
+        axios.post('http://localhost:80/users/login', body).then(response => {
+            console.log(response)
+            getRecentCollections();
+        });
+    }
+    const getRecentCollections = () => {
+        axios.get('http://localhost:80/collection/list').then(response => {
+            let collections = response.data;
+            let collectionsDiv = document.getElementById("collections");
+            for (let i = 0; i < collections.length; i++) {
+                let collectionDiv = document.createElement('div');
+                let editLink = document.createElement('a');
+                editLink.href = "http://localhost:80/edit/" + collections[i]["id"];
+                editLink.text = collections[i]["name"]
+                let deleteButton = document.createElement('button');
+                deleteButton.name = "delete";
+                deleteButton.addEventListener('onclick', function deleteDocument() {
+                    let body = {
+                        "id": collections[i]["id"]
+                    }
+                    axios.post('http://localhost:80/collection/delete', body).then((response) => {
+                        console.log(response.data)
+                    }).catch(error => {
+                        console.log(error);
+                    })
+                })
+                collectionDiv.appendChild(editLink);
+                collectionDiv.appendChild(deleteButton);
+                collectionsDiv.appendChild(collectionDiv);
+            }
+        })
+    }
+    login();
+</script>
+</body>
+</html>
