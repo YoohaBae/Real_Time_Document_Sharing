@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const db = require('./db');
 
 const app = express();
 const port = 80;
@@ -28,8 +29,8 @@ app.use('/collection', collectionRoutes);
 app.use('/media', mediaRoutes);
 
 app.get('/library/crdt.js', (req, res) => {
-  res.sendFile('/root/CSE356_Milestones/cse356_backend/public/library/crdt.js');
-  //res.sendFile('/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/library/crdt.js');
+  //res.sendFile('/root/CSE356_Milestones/cse356_backend/public/library/crdt.js');
+  res.sendFile('/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/library/crdt.js');
 });
 
 app.get('/index.html', (req, res) => {
@@ -40,13 +41,13 @@ app.get('/', (req, res) => {
 });
 
 app.get('/home', (req, res) => {
-  //res.sendFile('/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/home.html');
-  res.sendFile('/root/CSE356_Milestones/cse356_backend/public/home.html');
+  res.sendFile('/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/home.html');
+  //res.sendFile('/root/CSE356_Milestones/cse356_backend/public/home.html');
 });
 
 app.get('/edit/:id', (req, res) => {
-  //res.sendFile('/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/edit.html');
-  res.sendFile('/root/CSE356_Milestones/cse356_backend/public/edit.html');
+  res.sendFile('/Users/yoobae/WebstormProjects/CSE356_Milestones/cse356_backend/public/edit.html');
+  //res.sendFile('/root/CSE356_Milestones/cse356_backend/public/edit.html');
 });
 
 
