@@ -8,6 +8,10 @@ const router = express.Router();
 
 const mediaDir = path.join(__dirname, '/../media/');
 
+if (!fs.existsSync(mediaDir)) {
+  fs.mkdirSync(mediaDir);
+}
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, mediaDir);
