@@ -55,10 +55,7 @@ const Document = () => {
                         console.log(form);
                         axios.post(urlJoin(REACT_APP_BACKEND_URL, '/media/upload'), form,
                             {
-                                withCredentials: true,
-                                headers: {
-                                    'Content-Type': 'multipart/form-data'
-                                }
+                                withCredentials: true
                             }
                         ).then((response) => {
                             console.log(response)
