@@ -47,9 +47,17 @@
         document.write('<nobr>update> ', update, '</nobr><br/>');
     }
 
-    var quill = new Quill("#editor", {
+    var toolbarOptions = [
+        ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+        ['link', 'image']
+    ]
+
+    var quill = new Quill('#editor', {
+        modules: {
+            toolbar: toolbarOptions
+        },
         theme: 'snow'
-    })
+    });
 
     let documentID = getDocumentID();
     establishConnection(documentID);
@@ -60,6 +68,7 @@
     crdt.insert(12, '!');
     var text = crdt.toHTML();
     quill.clipboard.dangerouslyPasteHTML(text);
+
 </script>
 </body>
 </html>

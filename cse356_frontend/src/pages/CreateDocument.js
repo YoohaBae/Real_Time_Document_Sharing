@@ -46,7 +46,7 @@ const CreateDocument = () => {
     }
     useEffect(() => {
         getRecentDocuments();
-    })
+    }, [])
     return (<div>
         <div>
             {documents.map((data) => {
