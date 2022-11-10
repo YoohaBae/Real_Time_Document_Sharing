@@ -21,7 +21,7 @@ const Login = () => {
             "email": email,
             "password": password
         }
-        axios.post(urlJoin(REACT_APP_BACKEND_URL, "/users/login"), userInfo)
+        axios.post(urlJoin(REACT_APP_BACKEND_URL, "/users/login"), userInfo, {withCredentials: true})
             .then(response => {
                 navigate("/")
             });

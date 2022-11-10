@@ -15,7 +15,12 @@ const CreateDocument = () => {
     }
     const getRecentDocuments = (event) => {
         axios.get(urlJoin(REACT_APP_BACKEND_URL, "/collection/list"), {withCredentials: true}).then(response => {
-            setDocuments(response.data);
+            if (response.data.error) {
+                console.log("error");
+            }
+            else {
+                setDocuments(response.data);
+            }
         })
     }
     const createDocument = (event) => {
