@@ -3,6 +3,7 @@ import {useParams} from "react-router-dom";
 import {QuillBinding} from 'y-quill'
 import Quill from 'quill'
 import QuillCursors from 'quill-cursors'
+import {ImageUpload} from 'quill-image-upload';
 import 'react-quill/dist/quill.snow.css';
 import urlJoin from "url-join";
 import * as Y from 'yjs';
@@ -12,6 +13,7 @@ import axios from 'axios';
 const {REACT_APP_BACKEND_URL} = process.env;
 
 Quill.register('modules/cursors', QuillCursors);
+Quill.register('modules/imageUpload', ImageUpload);
 
 const jsonStringToUint8Array = (jsonString) => {
     let json = JSON.parse(jsonString)
@@ -34,14 +36,31 @@ const Document = () => {
         let ydoc = new Y.Doc();
         let ytext = ydoc.getText(documentID);
 
+        const toolbarOptions = [
+            ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+            ['link', 'image']
+        ]
+
         const editor = new Quill(editorContainer, {
             modules: {
                 cursors: true,
-                toolbar: [
-                    ['bold', 'italic', 'underline']
-                ],
+                toolbar: toolbarOptions,
                 history: {
                     userOnly: true
+                },
+                imageUpload: {
+                    customUploader: (file) => {
+                        let form = new FormData();
+                        form.append("file", file);
+                        console.log(form);
+                        axios.post(urlJoin(REACT_APP_BACKEND_URL, '/media/upload'), form,
+                            {
+                                withCredentials: true
+                            }
+                        ).then((response) => {
+                            console.log(response)
+                        })
+                    },
                 }
             },
             placeholder: 'Start collaborating...',
@@ -77,7 +96,7 @@ const Document = () => {
                 update: update
             })
             if (origin === binding) {
-                axios.post(urlJoin(REACT_APP_BACKEND_URL, 'api/op/' + documentID), message, {withCredentials: true})
+                axios.post(urlJoin(REACT_APP_BACKEND_URL, '/api/op/' + documentID), message, {withCredentials: true})
                     .then(response => console.log(response));
             }
         })
