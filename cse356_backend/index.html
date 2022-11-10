@@ -20,7 +20,7 @@
 
         function establishConnection(documentID) {
             let url = "http://iwomm.cse356.compas.cs.stonybrook.edu/api/connect/" + documentID;
-            let eventSource = new EventSource(url);
+            let eventSource = new EventSource(url, {withCredentials: true});
             eventSource.onopen = function (e) {
                 console.log("Event: open");
             };

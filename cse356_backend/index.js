@@ -13,8 +13,8 @@ const userRoutes = require('./routes/user');
 const mediaRoutes = require('./routes/media');
 const collectionRoutes = require('./routes/collection');
 
+app.use(cors({credentials: true, origin: 'http://localhost:3000'}));
 const directory = path.join(__dirname, '../');
-app.use(cors());
 
 // app.use(express.static('public'))
 

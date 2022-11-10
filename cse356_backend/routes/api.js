@@ -1,6 +1,6 @@
 const express = require('express');
 const yjs = require('yjs');
-const toUint8Array = require('base64-to-uint8array');
+//const toUint8Array = require('base64-to-uint8array');
 const { LeveldbPersistence } = require('y-leveldb');
 const router = express.Router();
 const User = require('../models/user-model');
@@ -15,6 +15,16 @@ function write(res, id, event, data) {
   res.write(`event: ${event}\n`);
   res.write(`data: ${JSON.stringify(data)}\n\n`);
 }
+
+const jsonToUint8Array = (object) => {
+  let ret = null;
+  ret = new Uint8Array(Object.keys(object).length);
+  for (let key in object) {
+    // @ts-ignore
+    ret[key] = object[key];
+  }
+  return ret
+};
 
 const auth = async (req, res, next) => {
   const key = req.session.key;
@@ -86,8 +96,7 @@ router.post('/op/:id', async (req, res) => {
   console.log('User Authenticated');
   const docId = req.params.id.toString();
   const clientID = req.body.clientID;
-  const update = req.body.update;
-  let array = toUint8Array(update);
+  let array = jsonToUint8Array(req.body.update);
   let ydoc = yDocs[docId];
   //let ydoc = persistence.getYDoc(id)
   yjs.applyUpdate(ydoc, array, clientID);

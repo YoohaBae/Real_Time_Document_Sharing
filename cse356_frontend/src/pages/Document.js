@@ -7,7 +7,7 @@ import 'react-quill/dist/quill.snow.css';
 import urlJoin from "url-join";
 import * as Y from 'yjs';
 import axios from 'axios';
-import * as base64 from "byte-base64";
+//import * as base64 from "byte-base64";
 
 const {REACT_APP_BACKEND_URL} = process.env;
 
@@ -50,7 +50,7 @@ const Document = () => {
 
         const binding = new QuillBinding(ytext, editor);
 
-        const sse = new EventSource(urlJoin(REACT_APP_BACKEND_URL + "/api/connect/" + documentID));
+        const sse = new EventSource(urlJoin(REACT_APP_BACKEND_URL + "/api/connect/" + documentID), {withCredentials: true});
 
 
         sse.onopen = () => {
@@ -70,12 +70,14 @@ const Document = () => {
         })
 
         ydoc.on('update', (update, origin, doc) => {
+            console.log("update: " + update)
             let message = ({
                 clientID: ydoc.clientID,
-                update: base64.bytesToBase64(update)
+                //update: base64.bytesToBase64(update)
+                update: update
             })
             if (origin === binding) {
-                axios.post('http://localhost:80/api/op/' + documentID, message)
+                axios.post(urlJoin(REACT_APP_BACKEND_URL, 'api/op/' + documentID), message, {withCredentials: true})
                     .then(response => console.log(response));
             }
         })

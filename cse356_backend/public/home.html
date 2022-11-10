@@ -20,13 +20,13 @@
             "email": "Yooha.Bae@stonybrook.edu",
             "password": "1234"
         }
-        axios.post('http://localhost:80/users/login', body).then(response => {
+        axios.post('http://localhost:80/users/login', body, {withCredentials: true}).then(response => {
             console.log(response)
             getRecentCollections();
         });
     }
     const getRecentCollections = () => {
-        axios.get('http://localhost:80/collection/list').then(response => {
+        axios.get('http://localhost:80/collection/list', {withCredentials: true}).then(response => {
             let collections = response.data;
             let collectionsDiv = document.getElementById("collections");
             collectionsDiv.innerHTML = "";
@@ -41,7 +41,7 @@
                     let body = {
                         "id": collections[i]["id"]
                     }
-                    axios.post('http://localhost:80/collection/delete', body).then((response) => {
+                    axios.post('http://localhost:80/collection/delete', body, {withCredentials: true}).then((response) => {
                         console.log(response.data)
                         getRecentCollections();
                     }).catch(error => {
@@ -59,17 +59,16 @@
             let body = {
                 "name": event.name.value
             }
-            axios.post('http://localhost:80/collection/create', body).then(response => {
+            axios.post('http://localhost:80/collection/create', body, {withCredentials: true}).then(response => {
                 console.log(response)
                 getRecentCollections();
             });
-        }
-        else {
+        } else {
             alert("No input value");
         }
     }
     const logout = () => {
-        axios.post('http://localhost:80/users/logout').then(response => {
+        axios.post('http://localhost:80/users/logout', {withCredentials: true}).then(response => {
             console.log(response);
         });
     }
