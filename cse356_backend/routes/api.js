@@ -5,8 +5,10 @@ const { LeveldbPersistence } = require('y-leveldb');
 const router = express.Router();
 const User = require('../models/user-model');
 const connections = require('../connections');
+const EventEmitter = require('events');
 
 const yDocs = {};
+const emitters = {};
 
 //const persistence = new LeveldbPersistence('./db-storage')
 
@@ -65,12 +67,16 @@ router.get('/connect/:id', async (req, res) => {
     Connection: 'keep-alive',
   });
   let yDoc = null;
+  let emitter = null;
   let event = 'sync';
   if (yDocs[docId] !== undefined) {
     yDoc = yDocs[docId];
+    emitter = emitters[docId];
   } else {
     yDoc = new yjs.Doc();
     yDocs[docId] = yDoc;
+    emitter = new EventEmitter();
+    emitters[docId] = emitter;
   }
 
   let state = await yjs.encodeStateAsUpdate(yDoc);
@@ -90,10 +96,13 @@ router.get('/connect/:id', async (req, res) => {
     write(res, eventID, event, message);
     eventID++;
   });
+
+  emitter.on('updateCursor', (cursor) => {
+    console.log(cursor);
+  });
 });
 
 router.post('/op/:id', async (req, res) => {
-  console.log('User Authenticated');
   const docId = req.params.id.toString();
   const clientID = req.body.clientID;
   let array = jsonToUint8Array(req.body.update);
@@ -104,6 +113,21 @@ router.post('/op/:id', async (req, res) => {
   let data = yDocs[docId].getText(docId);
   console.log('changed: ' + data);
   res.send('Successfully pushed event');
+});
+
+router.post('/presence/:id', async (req, res) => {
+  const docId = req.params.id.toString();
+  const emitter = emitters[docId];
+  const { index, length } = req.body;
+  if (emitter) {
+    emitter.emit('updateCursor', { index, length, sessionId: req.session.id });
+    res.send();
+  } else {
+    res.send({
+      error: true,
+      message: 'Server Error',
+    });
+  }
 });
 
 module.exports = router;
