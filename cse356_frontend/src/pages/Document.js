@@ -70,10 +70,6 @@ const Document = () => {
                       'image',
                       `http://localhost/media/access/${mediaid}`
                     );
-                    yxml.insert(range.index, 'k', {
-                      img: { href: `http://localhost/media/access/${mediaid}` },
-                    });
-                    console.log(yxml.toString());
                   }
                 }
               });
