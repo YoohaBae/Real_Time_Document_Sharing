@@ -155,6 +155,7 @@ router.post('/login', async (req, res) => {
   } else {
     res.cookie('key', user.key, { httpOnly: true });
     req.session.key = user.key;
+    req.session.name = user.name;
     console.log(req.session);
     console.log(req.session.id);
   }

@@ -9,6 +9,7 @@ const EventEmitter = require('events');
 
 const yDocs = {};
 const emitters = {};
+const cursors = {};
 
 //const persistence = new LeveldbPersistence('./db-storage')
 
@@ -77,12 +78,14 @@ router.get('/connect/:id', async (req, res) => {
     yDocs[docId] = yDoc;
     emitter = new EventEmitter();
     emitters[docId] = emitter;
+    cursors[docId] = {};
   }
 
   let state = await yjs.encodeStateAsUpdate(yDoc);
   let message = {
     update: state,
     clientID: 'sync',
+    presence: cursors[docId],
   };
   write(res, eventID, event, message);
   eventID++;
@@ -99,6 +102,17 @@ router.get('/connect/:id', async (req, res) => {
 
   emitter.on('updateCursor', (cursor) => {
     console.log(cursor);
+    let event = 'presence';
+    let message = {
+      sessionId: cursor.sessionId,
+      name: cursor.name,
+      cursor: {
+        index: cursor.index,
+        length: cursor.length,
+      },
+    };
+    write(res, eventID, event, message);
+    eventID++;
   });
 });
 
@@ -118,9 +132,19 @@ router.post('/op/:id', async (req, res) => {
 router.post('/presence/:id', async (req, res) => {
   const docId = req.params.id.toString();
   const emitter = emitters[docId];
+  const cursorArr = cursors[docId];
   const { index, length } = req.body;
+  const cursorData = {
+    index,
+    length,
+    sessionId: req.session.id,
+    name: req.session.name,
+  };
+  if (cursorArr) {
+    cursorArr[req.session.id] = cursorData;
+  }
   if (emitter) {
-    emitter.emit('updateCursor', { index, length, sessionId: req.session.id });
+    emitter.emit('updateCursor', cursorData);
     res.send();
   } else {
     res.send({
