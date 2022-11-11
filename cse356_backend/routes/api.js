@@ -23,7 +23,7 @@ const jsonToUint8Array = (object) => {
     // @ts-ignore
     ret[key] = object[key];
   }
-  return ret
+  return ret;
 };
 
 const auth = async (req, res, next) => {
