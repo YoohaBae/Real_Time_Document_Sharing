@@ -44,7 +44,12 @@ const Document = () => {
 
     const editor = new Quill(editorContainer, {
       modules: {
-        cursors: true,
+        cursors: {
+          hideDelayMs: 5000,
+          hideSpeedMs: 0,
+          selectionChangeSource: null,
+          transformOnTextChange: true,
+        },
         toolbar: toolbarOptions,
         history: {
           userOnly: true,
@@ -81,6 +86,7 @@ const Document = () => {
     });
 
     const binding = new QuillBinding(yxml, editor);
+    const cursors = editor.getModule('cursors');
 
     const sse = new EventSource(
       urlJoin(REACT_APP_BACKEND_URL + '/api/connect/' + documentID),
@@ -92,14 +98,34 @@ const Document = () => {
     };
 
     sse.addEventListener('sync', (event) => {
+      const { presence } = JSON.parse(event.data);
       let [clientID, data] = jsonStringToUint8Array(event.data);
       Y.applyUpdate(ydoc, data);
+      // SetTimeout to wait for applyUpdate to finish
+      setTimeout(() => {
+        for (let cursorData in presence) {
+          console.log(presence[cursorData]);
+          cursorData = presence[cursorData];
+          const { sessionId, name, index, length } = cursorData;
+          cursors.createCursor(sessionId, name, 'red');
+          cursors.moveCursor(sessionId, { index, length });
+        }
+      }, 0);
     });
+
     sse.addEventListener('update', (event) => {
       let [clientID, data] = jsonStringToUint8Array(event.data);
 
       if (clientID !== ydoc.clientID) {
         Y.applyUpdate(ydoc, data);
+      }
+    });
+    sse.addEventListener('presence', (event) => {
+      console.log('Received Cursor Event');
+      if (event.data) {
+        const { sessionId, name, cursor } = JSON.parse(event.data);
+        cursors.createCursor(sessionId, name, 'red');
+        cursors.moveCursor(sessionId, cursor);
       }
     });
 
