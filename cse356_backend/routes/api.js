@@ -88,13 +88,10 @@ router.get('/connect/:id', async (req, res) => {
   };
   write(res, eventID, event, message);
   eventID++;
-  console.log(cursors[docId])
 
   for (let cursorID in cursors[docId]) {
     let event = 'presence';
     let cursor = cursors[docId][cursorID]
-    console.log("sync cursor")
-    console.log(cursor);
 
     let message = {
       sessionId: cursor.sessionId,
@@ -119,8 +116,6 @@ router.get('/connect/:id', async (req, res) => {
   });
 
   emitter.on('updateCursor', (cursor) => {
-    console.log(cursor);
-    console.log("cursor changed")
     let event = 'presence';
     let message = {
       sessionId: cursor.sessionId,
@@ -143,8 +138,11 @@ router.post('/op/:id', async (req, res) => {
   //let ydoc = persistence.getYDoc(id)
   yjs.applyUpdate(ydoc, array, clientID);
   yDocs[docId] = ydoc;
+  const Collection = require('../models/collection-model');
+  let filter = {"id": docId}
+  let update = {"editTime": Date.now()}
+  let collection = await Collection.findOneAndUpdate(filter, update);
   // let data = yDocs[docId].getText(docId);
-  // console.log('changed: ' + data);
   res.send('Successfully pushed event');
 });
 

@@ -28,7 +28,7 @@ const CreateDocument = () => {
             "name": documentName
         }
         axios.post(urlJoin(REACT_APP_BACKEND_URL, "/collection/create"), body, {withCredentials: true}).then(response => {
-            console.log(response)
+            getRecentDocuments();
         })
     }
 
@@ -41,7 +41,8 @@ const CreateDocument = () => {
             "id": id
         }
         axios.post(urlJoin(REACT_APP_BACKEND_URL, "/collection/delete"), body, {withCredentials: true}).then(response => {
-            console.log(response)
+            console.log(response);
+            getRecentDocuments();
         })
     }
     useEffect(() => {
@@ -51,8 +52,8 @@ const CreateDocument = () => {
         <div>
             {documents.map((data) => {
                 return (
-                    <div>
-                        <a key={data.id} onClick={() => openDocument(data.id)}>{data.name}</a>
+                    <div key={data.id}>
+                        <a onClick={() => openDocument(data.id)}>{data.name}</a>
                         <button onClick={() => deleteDocument(data.id)}>Delete</button>
                     </div>)
             })}

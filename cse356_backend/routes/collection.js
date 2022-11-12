@@ -80,7 +80,6 @@ router.post('/create', async (req, res) => {
 router.post('/delete', async (req, res) => {
     let collectionId = req.body.id;
     let collection = await deleteCollection(collectionId);
-    console.log(collection);
     if (!collection) {
         res.send({
             error: true,
