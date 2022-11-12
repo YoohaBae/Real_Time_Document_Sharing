@@ -128,11 +128,13 @@ const Document = () => {
       sse.addEventListener('presence', (event) => {
         console.log('Received Cursor Event');
         console.log(event.data)
-        if (event.data) {
-          const {sessionId, name, cursor} = JSON.parse(event.data);
-          cursors.createCursor(sessionId, name, 'red');
-          cursors.moveCursor(sessionId, cursor);
-        }
+        setTimeout(() => {
+          if (event.data) {
+            const {sessionId, name, cursor} = JSON.parse(event.data);
+            cursors.createCursor(sessionId, name, 'red');
+            cursors.moveCursor(sessionId, cursor);
+          }
+        }, 0)
       });
 
       quill.on('selection-change', function (range, oldRange, source) {
