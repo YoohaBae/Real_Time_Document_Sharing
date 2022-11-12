@@ -6,7 +6,7 @@ const StartPage = () => {
         <br/>
         <Link to={"/auth"}>Auth</Link>
         <br/>
-        <Link to={"/doc"}>Create Document</Link>
+        <Link to={"/home"}>Create Document</Link>
     </div>)
 }
 export default StartPage;
