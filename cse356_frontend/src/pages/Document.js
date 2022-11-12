@@ -60,14 +60,12 @@ const Document = () => {
   useEffect(() => {
     if (quill) {
       const customUploader = (file) => {
-        console.log("custom Uploader")
         let form = new FormData();
         form.append('file', file);
         axios.post(urlJoin(REACT_APP_BACKEND_URL, '/media/upload'), form, {
           withCredentials: true,
         })
             .then((response) => {
-              console.log(response);
               const {mediaid, error} = response.data;
               if (!error) {
                 // Detail about cursor
@@ -106,16 +104,6 @@ const Document = () => {
         let [clientID, data] = jsonStringToUint8Array(event.data);
         await Y.applyUpdate(ydoc, data);
         cursors.clearCursors();
-        // SetTimeout to wait for applyUpdate to finish
-        // setTimeout(() => {
-        //   for (let cursorData in presence) {
-        //     console.log(presence[cursorData]);
-        //     cursorData = presence[cursorData];
-        //     const {sessionId, name, index, length} = cursorData;
-        //     cursors.createCursor(sessionId, name, "red");
-        //     cursors.moveCursor(sessionId, {index, length});
-        //   }
-        // }, 0);
       });
 
       sse.addEventListener('update', (event) => {
@@ -126,8 +114,6 @@ const Document = () => {
         }
       });
       sse.addEventListener('presence', (event) => {
-        console.log('Received Cursor Event');
-        console.log(event.data)
         setTimeout(() => {
           if (event.data) {
             const {sessionId, name, cursor} = JSON.parse(event.data);
@@ -153,7 +139,6 @@ const Document = () => {
       });
 
       ydoc.on('update', (update, origin, doc) => {
-        console.log('update: ' + update);
         let message = {
           clientID: ydoc.clientID,
           //update: base64.bytesToBase64(update)
@@ -166,9 +151,8 @@ const Document = () => {
                   message,
                   {withCredentials: true}
               )
-              .then((response) => console.log(response));
+              .then((response) => console.log("pushed event"));
         }
-        console.log(quill.root.innerHTML);
       });
 
       return () => {
