@@ -84,10 +84,29 @@ router.get('/connect/:id', async (req, res) => {
   let message = {
     update: state,
     clientID: 'sync',
-    presence: cursors[docId],
+    //presence: cursors[docId],
   };
   write(res, eventID, event, message);
   eventID++;
+  console.log(cursors[docId])
+
+  for (let cursorID in cursors[docId]) {
+    let event = 'presence';
+    let cursor = cursors[docId][cursorID]
+    console.log("sync cursor")
+    console.log(cursor);
+
+    let message = {
+      sessionId: cursor.sessionId,
+      name: cursor.name,
+      cursor: {
+        index: cursor.index,
+        length: cursor.length,
+      },
+    };
+    write(res, eventID, event, message);
+    eventID++;
+  }
 
   yDoc.on('update', (update, origin) => {
     let event = 'update';
@@ -101,6 +120,7 @@ router.get('/connect/:id', async (req, res) => {
 
   emitter.on('updateCursor', (cursor) => {
     console.log(cursor);
+    console.log("cursor changed")
     let event = 'presence';
     let message = {
       sessionId: cursor.sessionId,
@@ -123,8 +143,8 @@ router.post('/op/:id', async (req, res) => {
   //let ydoc = persistence.getYDoc(id)
   yjs.applyUpdate(ydoc, array, clientID);
   yDocs[docId] = ydoc;
-  let data = yDocs[docId].getText(docId);
-  console.log('changed: ' + data);
+  // let data = yDocs[docId].getText(docId);
+  // console.log('changed: ' + data);
   res.send('Successfully pushed event');
 });
 
