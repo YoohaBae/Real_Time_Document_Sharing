@@ -33,7 +33,7 @@ const CreateDocument = () => {
     }
 
     const openDocument = (id) => {
-        navigate("/doc/" + id);
+        navigate("/edit/" + id);
     }
 
     const deleteDocument = (id) => {
@@ -43,6 +43,11 @@ const CreateDocument = () => {
         axios.post(urlJoin(REACT_APP_BACKEND_URL, "/collection/delete"), body, {withCredentials: true}).then(response => {
             console.log(response);
             getRecentDocuments();
+        })
+    }
+    const logout = () => {
+        axios.post(urlJoin(REACT_APP_BACKEND_URL, "/users/logout"), {}, {withCredentials: true}).then(response => {
+            console.log("logged out");
         })
     }
     useEffect(() => {
@@ -59,9 +64,12 @@ const CreateDocument = () => {
             })}
         </div>
         <h1>Create Document</h1>
-        <label htmlFor="documentName">Document Name:</label>
-        <input type="text" id="documentName" name={"documentName"} onChange={handleChange}/>
-        <input type="button" value="Create" onClick={createDocument}/>
+        <form>
+            <label htmlFor="documentName">Document Name:</label>
+            <input type="text" id="documentName" name={"documentName"} onChange={handleChange}/>
+            <input type="button" value="Create" onClick={createDocument}/>
+        </form>
+        <button onClick={() => logout()}>Logout</button>
     </div>)
 }
 export default CreateDocument;

@@ -12,8 +12,8 @@ function App() {
         <Router>
             <Routes>
                 <Route path="/" element={<StartPage/>}/>
-                <Route path="/doc/:id" element={<Document/>}/>
-                <Route path="/doc" element={<CreateDocument/>}/>
+                <Route path="/edit/:id" element={<Document/>}/>
+                <Route path="/home" element={<CreateDocument/>}/>
                 <Route path="/auth" element={<Auth/>}/>
                 <Route path="/login" element={<Login/>}/>
             </Routes>
