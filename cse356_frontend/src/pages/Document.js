@@ -101,20 +101,21 @@ const Document = () => {
         console.log('Sse open');
       };
 
-      sse.addEventListener('sync', (event) => {
+      sse.addEventListener('sync', async (event) => {
         const {presence} = JSON.parse(event.data);
         let [clientID, data] = jsonStringToUint8Array(event.data);
-        Y.applyUpdate(ydoc, data);
+        await Y.applyUpdate(ydoc, data);
+        cursors.clearCursors();
         // SetTimeout to wait for applyUpdate to finish
-        setTimeout(() => {
-          for (let cursorData in presence) {
-            console.log(presence[cursorData]);
-            cursorData = presence[cursorData];
-            const {sessionId, name, index, length} = cursorData;
-            cursors.createCursor(sessionId, name, "red");
-            cursors.moveCursor(sessionId, {index, length});
-          }
-        }, 0);
+        // setTimeout(() => {
+        //   for (let cursorData in presence) {
+        //     console.log(presence[cursorData]);
+        //     cursorData = presence[cursorData];
+        //     const {sessionId, name, index, length} = cursorData;
+        //     cursors.createCursor(sessionId, name, "red");
+        //     cursors.moveCursor(sessionId, {index, length});
+        //   }
+        // }, 0);
       });
 
       sse.addEventListener('update', (event) => {
@@ -126,6 +127,7 @@ const Document = () => {
       });
       sse.addEventListener('presence', (event) => {
         console.log('Received Cursor Event');
+        console.log(event.data)
         if (event.data) {
           const {sessionId, name, cursor} = JSON.parse(event.data);
           cursors.createCursor(sessionId, name, 'red');

@@ -156,8 +156,8 @@ router.post('/login', async (req, res) => {
     res.cookie('key', user.key, { httpOnly: true });
     req.session.key = user.key;
     req.session.name = user.name;
-    console.log(req.session);
-    console.log(req.session.id);
+    // console.log(req.session);
+    // console.log(req.session.id);
   }
   res.send({
     name: user.name,
@@ -185,8 +185,8 @@ router.get('/verify', async (req, res) => {
   let key = req.query.key;
   let status = 'OK';
   let statusCode = 200;
-  console.log('email: ' + req.query.email);
-  console.log('key ' + req.query.key);
+  // console.log('email: ' + req.query.email);
+  // console.log('key ' + req.query.key);
   if (!(await verifyKey(email, key))) {
     res.send({
       error: true,
