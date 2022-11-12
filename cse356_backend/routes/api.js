@@ -1,6 +1,5 @@
 const express = require('express');
 const yjs = require('yjs');
-//const toUint8Array = require('base64-to-uint8array');
 const { LeveldbPersistence } = require('y-leveldb');
 const router = express.Router();
 const User = require('../models/user-model');

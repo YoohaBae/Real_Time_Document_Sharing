@@ -8,7 +8,6 @@ import 'react-quill/dist/quill.snow.css';
 import urlJoin from 'url-join';
 import * as Y from 'yjs';
 import axios from 'axios';
-//import * as base64 from "byte-base64";
 
 const { REACT_APP_BACKEND_URL } = process.env;
 
@@ -128,6 +127,21 @@ const Document = () => {
         cursors.moveCursor(sessionId, cursor);
       }
     });
+
+    editor.on('selection-change', function(range, oldRange, source) {
+          if (range) {
+              let selection = editor.getSelection(true);
+              let body = {
+                  "index": selection.index,
+                  "length": selection.length
+              }
+              axios.post(urlJoin(REACT_APP_BACKEND_URL, "/api/presence/" + documentID), body, {withCredentials: true}).then((response) => {
+                  console.log(response)
+              })
+          } else {
+              console.log('Cursor not in the editor');
+          }
+      });
 
     ydoc.on('update', (update, origin, doc) => {
       console.log('update: ' + update);
