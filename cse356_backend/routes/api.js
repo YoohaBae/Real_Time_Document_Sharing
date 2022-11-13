@@ -159,8 +159,11 @@ router.post('/op/:id', async (req, res) => {
   //let ydoc = persistence.getYDoc(id)
   yjs.applyUpdate(ydoc, array, clientID);
   yDocs[docId] = ydoc;
+  const Collection = require('../models/collection-model');
+  let filter = { id: docId };
+  let update = { editTime: Date.now() };
+  let collection = await Collection.findOneAndUpdate(filter, update);
   // let data = yDocs[docId].getText(docId);
-  // console.log('changed: ' + data);
   res.send('Successfully pushed event');
 });
 

@@ -28,12 +28,12 @@ const CreateDocument = () => {
             "name": documentName
         }
         axios.post(urlJoin(REACT_APP_BACKEND_URL, "/collection/create"), body, {withCredentials: true}).then(response => {
-            console.log(response)
+            getRecentDocuments();
         })
     }
 
     const openDocument = (id) => {
-        navigate("/doc/" + id);
+        navigate("/edit/" + id);
     }
 
     const deleteDocument = (id) => {
@@ -41,7 +41,13 @@ const CreateDocument = () => {
             "id": id
         }
         axios.post(urlJoin(REACT_APP_BACKEND_URL, "/collection/delete"), body, {withCredentials: true}).then(response => {
-            console.log(response)
+            console.log(response);
+            getRecentDocuments();
+        })
+    }
+    const logout = () => {
+        axios.post(urlJoin(REACT_APP_BACKEND_URL, "/users/logout"), {}, {withCredentials: true}).then(response => {
+            console.log("logged out");
         })
     }
     useEffect(() => {
@@ -51,16 +57,19 @@ const CreateDocument = () => {
         <div>
             {documents.map((data) => {
                 return (
-                    <div>
-                        <a key={data.id} onClick={() => openDocument(data.id)}>{data.name}</a>
+                    <div key={data.id}>
+                        <a onClick={() => openDocument(data.id)}>{data.name}</a>
                         <button onClick={() => deleteDocument(data.id)}>Delete</button>
                     </div>)
             })}
         </div>
         <h1>Create Document</h1>
-        <label htmlFor="documentName">Document Name:</label>
-        <input type="text" id="documentName" name={"documentName"} onChange={handleChange}/>
-        <input type="button" value="Create" onClick={createDocument}/>
+        <form>
+            <label htmlFor="documentName">Document Name:</label>
+            <input type="text" id="documentName" name={"documentName"} onChange={handleChange}/>
+            <input type="button" value="Create" onClick={createDocument}/>
+        </form>
+        <button onClick={() => logout()}>Logout</button>
     </div>)
 }
 export default CreateDocument;
