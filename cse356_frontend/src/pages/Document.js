@@ -56,14 +56,28 @@ const Document = () => {
   }
   useEffect(() => {
     if (quill) {
+      quill.focus();
+      let selection = quill.getSelection(true);
+      let body = {
+        index: selection.index,
+        length: selection.length,
+      };
+      axios
+        .post(
+          urlJoin(REACT_APP_BACKEND_URL, '/api/presence/' + documentID),
+          body,
+          {withCredentials: true, credentials: "include"}
+        )
+        .then((response) => {
+          //console.log(response);
+        });
       const customUploader = (file) => {
-        console.log('custom Uploader');
         let form = new FormData();
         form.append('file', file);
         axios
           .post(urlJoin(REACT_APP_BACKEND_URL, '/media/upload'), form, {withCredentials: true, credentials: "include"})
           .then((response) => {
-            console.log(response);
+            //console.log(response);
             const { mediaid, error } = response.data;
             if (!error) {
               // Detail about cursor
@@ -78,9 +92,7 @@ const Document = () => {
             }
           });
       };
-      console.log(quill.getModule('imageUpload').options);
       quill.getModule('imageUpload').options.customUploader = customUploader;
-      console.log(quill.getModule('imageUpload'));
       let ydoc = new Y.Doc();
       // let ytext = ydoc.getText(documentID);
       const yxml = ydoc.get(documentID, Y.XmlText);
@@ -100,7 +112,6 @@ const Document = () => {
         const { presence } = JSON.parse(event.data);
         let [clientID, data] = jsonStringToUint8Array(event.data);
         await Y.applyUpdate(ydoc, data);
-        cursors.clearCursors();
         // SetTimeout to wait for applyUpdate to finish
         // setTimeout(() => {
         //   for (let cursorData in presence) {
@@ -121,8 +132,7 @@ const Document = () => {
         }
       });
       sse.addEventListener('presence', (event) => {
-        console.log('Received Cursor Event');
-        console.log(event.data);
+        //console.log(event.data);
         setTimeout(() => {
           if (event.data) {
             const { sessionId, name, cursor } = JSON.parse(event.data);
@@ -150,19 +160,17 @@ const Document = () => {
               {withCredentials: true, credentials: "include"}
             )
             .then((response) => {
-              console.log(response);
+              //console.log(response);
             });
-          console.log(range);
         } else {
-          console.log('Cursor not in the quill');
+          //console.log('Cursor not in the quill');
         }
       });
 
-      ydoc.on('update', (update, origin, doc) => {
-        console.log('update: ' + update);
+      ydoc.on('update', (update, origin) => {
+        //Y.logUpdate(update);
         let message = {
           clientID: ydoc.clientID,
-          //update: base64.bytesToBase64(update)
           update: update,
         };
         if (origin === binding) {
@@ -172,9 +180,11 @@ const Document = () => {
               message,
               {withCredentials: true, credentials: "include"}
             )
-            .then((response) => console.log(response));
+            .then((response) => {
+            //console.log(response)
+          });
         }
-        console.log(quill.root.innerHTML);
+        //console.log(quill.root.innerHTML);
       });
 
       return () => {
