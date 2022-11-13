@@ -158,13 +158,15 @@ router.post('/op/:id', async (req, res) => {
   let ydoc = yDocs[docId];
   //let ydoc = persistence.getYDoc(id)
   yjs.applyUpdate(ydoc, array, clientID);
+  //yjs.logUpdate(array);
+  console.log(array)
   yDocs[docId] = ydoc;
   const Collection = require('../models/collection-model');
   let filter = { id: docId };
   let update = { editTime: Date.now() };
-  let collection = await Collection.findOneAndUpdate(filter, update);
+  Collection.findOneAndUpdate(filter, update);
   // let data = yDocs[docId].getText(docId);
-  res.send('Successfully pushed event');
+  res.json({});
 });
 
 router.post('/presence/:id', async (req, res) => {
@@ -183,7 +185,7 @@ router.post('/presence/:id', async (req, res) => {
   // }
   if (emitter) {
     emitter.emit('updateCursor', cursorData);
-    res.send();
+    res.json({});
   } else {
     res.send({
       error: true,
