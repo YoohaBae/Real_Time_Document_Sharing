@@ -72,7 +72,7 @@ const Document = () => {
                 quill.insertEmbed(
                   range.index,
                   'image',
-                  `http://localhost/media/access/${mediaid}`
+                  `http://${REACT_APP_BACKEND_URL}/media/access/${mediaid}`
                 );
               }
             }
