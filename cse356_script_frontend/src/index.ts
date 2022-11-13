@@ -32,10 +32,10 @@ exports.CRDT = class {
       (f) => ((this as any)[f] = (this as any)[f].bind(this))
     );
     this.doc.on('update', (update, origin) => {
-      if (origin === this.doc.clientID) {
+      if (origin === null) {
         let message = {
           update: update,
-          clientID: origin,
+          clientID: this.doc.clientID,
         };
         this.cb(JSON.stringify(message), true);
       } else {
@@ -45,8 +45,6 @@ exports.CRDT = class {
   }
 
   update(update: string) {
-    // axios.post('http://194.113.72.22/log' , {update, function: "update"})
-    //             .then(response => console.log(response));
     let [clientId, data] = jsonStringToUint8Array(update);
     if (clientId !== this.doc.clientID) {
       Y.applyUpdate(this.doc, data, clientId);
@@ -54,15 +52,11 @@ exports.CRDT = class {
   }
 
   insert(index: number, content: string, format: CRDTFormat) {
-    // axios.post('http://194.113.72.22/log' , {index, content, format, function: "insert"})
-    //             .then(response => console.log(response));
     // @ts-ignore
     this.text.insert(index, content, format);
   }
 
   delete(index: number, length: number) {
-    // axios.post('http://194.113.72.22/log' , {index, length, function: "delete"})
-    //             .then(response => console.log(response));
     // @ts-ignore
     this.text.delete(index, length);
   }
