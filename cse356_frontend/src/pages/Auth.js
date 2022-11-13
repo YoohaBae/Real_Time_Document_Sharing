@@ -26,7 +26,7 @@ const Auth = () => {
             "email": email,
             "password": password
         }
-        axios.post(urlJoin(REACT_APP_BACKEND_URL, '/users/signup'), userInfo, {withCredentials: true})
+        axios.post(urlJoin(REACT_APP_BACKEND_URL, '/users/signup'), userInfo, {withCredentials: true, credentials: "include"})
             .then(response => {
                 navigate("/")
             });
