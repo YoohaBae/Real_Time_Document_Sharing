@@ -6,14 +6,14 @@ const sessions = require('express-session');
 const path = require('path');
 
 const app = express();
-const port = 80;
+const port = 8000;
 
 const apiRoutes = require('./routes/api');
 const userRoutes = require('./routes/user');
 const mediaRoutes = require('./routes/media');
 const collectionRoutes = require('./routes/collection');
 
-app.use(cors({credentials: true, origin: 'http://localhost:3000'}));
+app.use(cors({credentials: true, origin: ['http://localhost:3000', "http://iwomm.cse356.compas.cs.stonybrook.edu", "http://209.151.155.172/"]}));
 const directory = path.join(__dirname, '../');
 
 // app.use(express.static('public'))
