@@ -2,6 +2,7 @@ const express = require('express');
 const nodemailer = require('nodemailer');
 const User = require('../models/user-model');
 const connections = require('../connections');
+const emitters = require('../emitters');
 
 const router = express.Router();
 
@@ -172,6 +173,14 @@ router.post('/logout', async (req, res) => {
     if (connections[req.session.id]) {
       connections[req.session.id].end();
       delete connections[req.session.id];
+    }
+    if (req.session.docId) {
+      const emitter = emitters[req.session.docId];
+      emitter.emit('updateCursor', {
+        sessionId: req.session.id,
+        name: req.session.name,
+        index: -1,
+      });
     }
     req.session.destroy(function (err) {
       console.log('Destroyed session');

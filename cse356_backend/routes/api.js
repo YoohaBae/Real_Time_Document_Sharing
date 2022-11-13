@@ -4,10 +4,10 @@ const { LeveldbPersistence } = require('y-leveldb');
 const router = express.Router();
 const User = require('../models/user-model');
 const connections = require('../connections');
+const emitters = require('../emitters');
 const EventEmitter = require('events');
 
 const yDocs = {};
-const emitters = {};
 const cursors = {};
 
 //const persistence = new LeveldbPersistence('./db-storage')
@@ -60,6 +60,7 @@ router.use(auth);
 router.get('/connect/:id', async (req, res) => {
   const docId = req.params.id.toString();
   connections[req.session.id] = res;
+  req.session.docId = docId;
   let eventID = 0;
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
@@ -88,14 +89,10 @@ router.get('/connect/:id', async (req, res) => {
   };
   write(res, eventID, event, message);
   eventID++;
-  console.log(cursors[docId])
 
   for (let cursorID in cursors[docId]) {
     let event = 'presence';
-    let cursor = cursors[docId][cursorID]
-    console.log("sync cursor")
-    console.log(cursor);
-
+    let cursor = cursors[docId][cursorID];
     let message = {
       sessionId: cursor.sessionId,
       name: cursor.name,
@@ -119,8 +116,6 @@ router.get('/connect/:id', async (req, res) => {
   });
 
   emitter.on('updateCursor', (cursor) => {
-    console.log(cursor);
-    console.log("cursor changed")
     let event = 'presence';
     let message = {
       sessionId: cursor.sessionId,
@@ -130,8 +125,29 @@ router.get('/connect/:id', async (req, res) => {
         length: cursor.length,
       },
     };
+    const cursorArr = cursors[docId];
+    if (cursorArr) {
+      if (cursor != null && cursor.index != -1)
+        cursorArr[cursor.sessionId] = cursor;
+      else {
+        message = {
+          sessionId: cursor.sessionId,
+          name: cursor.name,
+          cursor: {},
+        };
+        delete cursorArr[cursor.sessionId];
+      }
+    }
     write(res, eventID, event, message);
     eventID++;
+  });
+
+  req.on('close', () => {
+    emitter.emit('updateCursor', {
+      sessionId: req.session.id,
+      name: req.session.name,
+      index: -1,
+    });
   });
 });
 
@@ -151,7 +167,7 @@ router.post('/op/:id', async (req, res) => {
 router.post('/presence/:id', async (req, res) => {
   const docId = req.params.id.toString();
   const emitter = emitters[docId];
-  const cursorArr = cursors[docId];
+  // const cursorArr = cursors[docId];
   const { index, length } = req.body;
   const cursorData = {
     index,
@@ -159,9 +175,9 @@ router.post('/presence/:id', async (req, res) => {
     sessionId: req.session.id,
     name: req.session.name,
   };
-  if (cursorArr) {
-    cursorArr[req.session.id] = cursorData;
-  }
+  // if (cursorArr) {
+  //   cursorArr[req.session.id] = cursorData;
+  // }
   if (emitter) {
     emitter.emit('updateCursor', cursorData);
     res.send();
