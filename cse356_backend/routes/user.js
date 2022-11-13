@@ -6,6 +6,15 @@ const emitters = require('../emitters');
 
 const router = express.Router();
 
+const transporter = nodemailer.createTransport({
+  host: '127.0.0.1',
+  port: 25,
+  secure: false,
+  tls: {
+    rejectUnauthorized: false,
+  },
+});
+
 async function duplicateCredentials(email) {
   //check if duplicate credentials already exist in database
   let user = await User.findOne({ email });
@@ -44,14 +53,6 @@ async function sendVerificationEmail(email) {
     const user = await User.findOneAndUpdate({ email }, { key });
     if (!user) return;
     // Send Email
-    let transporter = nodemailer.createTransport({
-      host: '127.0.0.1',
-      port: 25,
-      secure: false,
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
     console.log('transporter configuration done');
 
     let html_content = `http://iwomm.cse356.compas.cs.stonybrook.edu/users/verify?email=${encodeURIComponent(
@@ -138,7 +139,7 @@ router.post('/signup', async (req, res) => {
     }
     sendVerificationEmail(email);
   }
-  res.send({ name: name, status: status });
+  res.json({});
 });
 
 router.post('/login', async (req, res) => {
@@ -167,7 +168,7 @@ router.post('/login', async (req, res) => {
 
 router.post('/logout', async (req, res) => {
   if (!req.cookies.key) {
-    res.send();
+    res.json({});
   } else {
     res.clearCookie('key', { httpOnly: true });
     if (connections[req.session.id]) {
@@ -185,7 +186,7 @@ router.post('/logout', async (req, res) => {
     req.session.destroy(function (err) {
       console.log('Destroyed session');
     });
-    res.send();
+    res.json({});
   }
 });
 
@@ -197,13 +198,17 @@ router.get('/verify', async (req, res) => {
   // console.log('email: ' + req.query.email);
   // console.log('key ' + req.query.key);
   if (!(await verifyKey(email, key))) {
+    console.log("invalid");
     res.send({
       error: true,
       message: 'Invalid/Expired Verification Link',
     });
     return;
   }
-  res.send();
+  console.log("verified");
+  res.send({
+    "status": status
+  });
 });
 
 module.exports = router;

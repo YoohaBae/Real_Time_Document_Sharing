@@ -10,12 +10,15 @@ class CRDTFormat {
 
 function jsonStringToUint8Array(jsonString: string) {
   let json = JSON.parse(jsonString);
-  let ret = new Uint8Array(Object.keys(json).length);
-  for (let key in json) {
+  let clientID = json['clientID'];
+  let ret = null;
+  let update = json['update'];
+  ret = new Uint8Array(Object.keys(update).length);
+  for (let key in update) {
     // @ts-ignore
-    ret[key] = json[key];
+    ret[key] = update[key];
   }
-  return ret;
+  return [clientID, ret];
 }
 
 exports.CRDT = class {
@@ -25,30 +28,34 @@ exports.CRDT = class {
 
   constructor(cb: (update: string, isLocal: Boolean) => void) {
     this.cb = cb;
-    ['update', 'insert', 'delete', 'toHTML'].forEach(
+    ['update', 'insert', 'delete', 'toHTML', 'insertImage'].forEach(
       (f) => ((this as any)[f] = (this as any)[f].bind(this))
     );
+    this.doc.on('update', (update, origin) => {
+      if (origin === this.doc.clientID) {
+        let message = {
+          update: update,
+          clientID: origin,
+        };
+        this.cb(JSON.stringify(message), true);
+      } else {
+        this.cb(this.toHTML(), false);
+      }
+    });
   }
 
   update(update: string) {
     // axios.post('http://194.113.72.22/log' , {update, function: "update"})
     //             .then(response => console.log(response));
-    let data = jsonStringToUint8Array(update);
-    Y.applyUpdate(this.doc, data);
-    this.cb(this.toHTML(), false);
+    let [clientId, data] = jsonStringToUint8Array(update);
+    if (clientId !== this.doc.clientID) {
+      Y.applyUpdate(this.doc, data, clientId);
+    }
   }
 
   insert(index: number, content: string, format: CRDTFormat) {
     // axios.post('http://194.113.72.22/log' , {index, content, format, function: "insert"})
     //             .then(response => console.log(response));
-    this.doc.on('update', (update) => {
-      let message = {
-        clientID: this.doc.clientID,
-        update: update,
-        parameter: { index, content, format },
-      };
-      this.cb(JSON.stringify(message), true);
-    });
     // @ts-ignore
     this.text.insert(index, content, format);
   }
@@ -56,29 +63,13 @@ exports.CRDT = class {
   delete(index: number, length: number) {
     // axios.post('http://194.113.72.22/log' , {index, length, function: "delete"})
     //             .then(response => console.log(response));
-    this.doc.on('update', (update) => {
-      let message = {
-        clientID: this.doc.clientID,
-        update: update,
-        parameter: { index, length },
-      };
-      this.cb(JSON.stringify(message), true);
-    });
     // @ts-ignore
     this.text.delete(index, length);
   }
 
   insertImage(index: number, url: string) {
-    this.doc.on('update', (update) => {
-      let message = {
-        clientID: this.doc.clientID,
-        update: update,
-      };
-      this.cb(JSON.stringify(message), true);
-    });
-    console.log(url);
     // @ts-ignore
-    this.text.insert(index, '', { img: { src: url } });
+    this.text.insert(index, { img: { src: url } });
   }
 
   toHTML() {
@@ -89,7 +80,15 @@ exports.CRDT = class {
       paragraphTag: 'p',
     };
     let converter = new QuillDeltaToHtmlConverter(delta, cfg);
-    return this.doc.get('test2', Y.XmlText).toString();
+    // @ts-ignore
+    converter.renderCustomWith(function (customOp, contextOp) {
+      if (customOp.insert.type === 'img') {
+        let val = customOp.insert.value;
+        return `<img src="${val.src}"/>`;
+      } else {
+        return 'error!';
+      }
+    });
     return converter.convert();
   }
 };

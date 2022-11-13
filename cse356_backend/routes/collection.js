@@ -86,7 +86,7 @@ router.post('/delete', async (req, res) => {
             message: 'Unable to delete collection',
         })
     } else {
-        res.send()
+        res.json({})
     }
 })
 
