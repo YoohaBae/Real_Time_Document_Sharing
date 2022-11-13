@@ -95,7 +95,7 @@ const Document = () => {
       quill.getModule('imageUpload').options.customUploader = customUploader;
       let ydoc = new Y.Doc();
       // let ytext = ydoc.getText(documentID);
-      const yxml = ydoc.get(documentID, Y.XmlText);
+      const yxml = ydoc.get('test2', Y.XmlText);
       const binding = new QuillBinding(yxml, quill);
       const cursors = quill.getModule('cursors');
 
