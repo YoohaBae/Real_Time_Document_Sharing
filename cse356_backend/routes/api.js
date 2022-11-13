@@ -6,6 +6,7 @@ const User = require('../models/user-model');
 const connections = require('../connections');
 const emitters = require('../emitters');
 const EventEmitter = require('events');
+EventEmitter.setMaxListeners(0);
 
 const yDocs = {};
 const cursors = {};
@@ -94,7 +95,7 @@ router.get('/connect/:id', async (req, res) => {
     let event = 'presence';
     let cursor = cursors[docId][cursorID];
     let message = {
-      sessionId: cursor.sessionId,
+      session_id: cursor.session_id,
       name: cursor.name,
       cursor: {
         index: cursor.index,
@@ -118,7 +119,7 @@ router.get('/connect/:id', async (req, res) => {
   emitter.on('updateCursor', (cursor) => {
     let event = 'presence';
     let message = {
-      sessionId: cursor.sessionId,
+      session_id: cursor.session_id,
       name: cursor.name,
       cursor: {
         index: cursor.index,
@@ -128,14 +129,14 @@ router.get('/connect/:id', async (req, res) => {
     const cursorArr = cursors[docId];
     if (cursorArr) {
       if (cursor != null && cursor.index != -1)
-        cursorArr[cursor.sessionId] = cursor;
+        cursorArr[cursor.session_id] = cursor;
       else {
         message = {
-          sessionId: cursor.sessionId,
+          session_id: cursor.session_id,
           name: cursor.name,
           cursor: {},
         };
-        delete cursorArr[cursor.sessionId];
+        delete cursorArr[cursor.session_id];
       }
     }
     write(res, eventID, event, message);
@@ -144,7 +145,7 @@ router.get('/connect/:id', async (req, res) => {
 
   req.on('close', () => {
     emitter.emit('updateCursor', {
-      sessionId: req.session.id,
+      session_id: req.session.id,
       name: req.session.name,
       index: -1,
     });
@@ -159,12 +160,11 @@ router.post('/op/:id', async (req, res) => {
   //let ydoc = persistence.getYDoc(id)
   yjs.applyUpdate(ydoc, array, clientID);
   //yjs.logUpdate(array);
-  console.log(array)
   yDocs[docId] = ydoc;
   const Collection = require('../models/collection-model');
   let filter = { id: docId };
   let update = { editTime: Date.now() };
-  Collection.findOneAndUpdate(filter, update);
+  let collection = await Collection.findOneAndUpdate(filter, update);
   // let data = yDocs[docId].getText(docId);
   res.json({});
 });
@@ -177,7 +177,7 @@ router.post('/presence/:id', async (req, res) => {
   const cursorData = {
     index,
     length,
-    sessionId: req.session.id,
+    session_id: req.session.id,
     name: req.session.name,
   };
   // if (cursorArr) {

@@ -69,6 +69,14 @@ router.use(auth);
 
 router.post('/upload', upload, (req, res) => {
   const image = req.file;
+  console.log(image);
+  if (image === undefined) {
+    res.send({
+      error: true,
+      message: 'Image is not defined',
+    });
+    return;
+  }
   const { mimetype, filename } = image;
   const mediaid = filename.split('.')[0];
   if (
