@@ -61,9 +61,7 @@ const Document = () => {
         let form = new FormData();
         form.append('file', file);
         axios
-          .post(urlJoin(REACT_APP_BACKEND_URL, '/media/upload'), form, {
-            withCredentials: true,
-          })
+          .post(urlJoin(REACT_APP_BACKEND_URL, '/media/upload'), form, {withCredentials: true, credentials: "include"})
           .then((response) => {
             console.log(response);
             const { mediaid, error } = response.data;
@@ -91,7 +89,7 @@ const Document = () => {
 
       const sse = new EventSource(
         urlJoin(REACT_APP_BACKEND_URL + '/api/connect/' + documentID),
-        { withCredentials: true }
+        {withCredentials: true, credentials: "include"}
       );
 
       sse.onopen = () => {
@@ -149,7 +147,7 @@ const Document = () => {
             .post(
               urlJoin(REACT_APP_BACKEND_URL, '/api/presence/' + documentID),
               body,
-              { withCredentials: true }
+              {withCredentials: true, credentials: "include"}
             )
             .then((response) => {
               console.log(response);
@@ -172,7 +170,7 @@ const Document = () => {
             .post(
               urlJoin(REACT_APP_BACKEND_URL, '/api/op/' + documentID),
               message,
-              { withCredentials: true }
+              {withCredentials: true, credentials: "include"}
             )
             .then((response) => console.log(response));
         }

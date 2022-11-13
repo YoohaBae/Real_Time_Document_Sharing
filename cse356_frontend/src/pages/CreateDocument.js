@@ -14,7 +14,7 @@ const CreateDocument = () => {
         setDocumentName(event.target.value);
     }
     const getRecentDocuments = (event) => {
-        axios.get(urlJoin(REACT_APP_BACKEND_URL, "/collection/list"), {withCredentials: true}).then(response => {
+        axios.get(urlJoin(REACT_APP_BACKEND_URL, "/collection/list"), {withCredentials: true, credentials: "include"}).then(response => {
             if (response.data.error) {
                 console.log("error");
             }
@@ -27,7 +27,7 @@ const CreateDocument = () => {
         let body = {
             "name": documentName
         }
-        axios.post(urlJoin(REACT_APP_BACKEND_URL, "/collection/create"), body, {withCredentials: true}).then(response => {
+        axios.post(urlJoin(REACT_APP_BACKEND_URL, "/collection/create"), body, {withCredentials: true, credentials: "include"}).then(response => {
             getRecentDocuments();
         })
     }
@@ -40,13 +40,13 @@ const CreateDocument = () => {
         let body = {
             "id": id
         }
-        axios.post(urlJoin(REACT_APP_BACKEND_URL, "/collection/delete"), body, {withCredentials: true}).then(response => {
+        axios.post(urlJoin(REACT_APP_BACKEND_URL, "/collection/delete"), body, {withCredentials: true, credentials: "include"}).then(response => {
             console.log(response);
             getRecentDocuments();
         })
     }
     const logout = () => {
-        axios.post(urlJoin(REACT_APP_BACKEND_URL, "/users/logout"), {}, {withCredentials: true}).then(response => {
+        axios.post(urlJoin(REACT_APP_BACKEND_URL, "/users/logout"), {}, {withCredentials: true, credentials: "include"}).then(response => {
             console.log("logged out");
         })
     }
