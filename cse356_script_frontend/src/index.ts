@@ -1,7 +1,6 @@
-import * as Y from 'yjs'
+import * as Y from 'yjs';
 // @ts-ignore
 import {QuillDeltaToHtmlConverter} from 'quill-delta-to-html';
-
 
 class CRDTFormat {
     public bold?: Boolean = false;
@@ -17,17 +16,18 @@ function jsonStringToUint8Array(jsonString: string) {
         ret[key] = json[key];
     }
     return ret;
-};
-
+}
 
 exports.CRDT = class {
     doc = new Y.Doc();
-    text = this.doc.getText('test');
+    text = this.doc.get('test2', Y.XmlText);
     cb: (update: string, isLocal: Boolean) => void;
 
     constructor(cb: (update: string, isLocal: Boolean) => void) {
         this.cb = cb;
-        ['update', 'insert', 'delete', 'toHTML'].forEach(f => (this as any)[f] = (this as any)[f].bind(this));
+        ['update', 'insert', 'delete', 'toHTML'].forEach(
+            (f) => ((this as any)[f] = (this as any)[f].bind(this))
+        );
     }
 
     update(update: string) {
@@ -42,13 +42,14 @@ exports.CRDT = class {
         // axios.post('http://194.113.72.22/log' , {index, content, format, function: "insert"})
         //             .then(response => console.log(response));
         this.doc.on('update', (update) => {
-            let message = ({
+            let message = {
                 clientID: this.doc.clientID,
                 update: update,
-                parameter: {index, content, format}
-            })
+                parameter: {index, content, format},
+            };
             this.cb(JSON.stringify(message), true);
-        })
+        });
+        // @ts-ignore
         this.text.insert(index, content, format);
     }
 
@@ -56,23 +57,46 @@ exports.CRDT = class {
         // axios.post('http://194.113.72.22/log' , {index, length, function: "delete"})
         //             .then(response => console.log(response));
         this.doc.on('update', (update) => {
-            let message = ({
+            let message = {
                 clientID: this.doc.clientID,
                 update: update,
-                parameter: {index, length}
-            })
+                parameter: {index, length},
+            };
             this.cb(JSON.stringify(message), true);
-        })
+        });
+        // @ts-ignore
         this.text.delete(index, length);
     }
 
+    insertImage(index: number, url: string) {
+        this.doc.on('update', (update) => {
+            let message = {
+                clientID: this.doc.clientID,
+                update: update,
+            };
+            this.cb(JSON.stringify(message), true);
+        });
+        // @ts-ignore
+        this.text.insert(index, {img: {src: url}});
+    }
+
     toHTML() {
-        let delta = this.doc.getText('test').toDelta();
+        // @ts-ignore
+        let delta = this.doc.get('test2', Y.XmlText).toDelta();
         // @ts-ignore
         let cfg = {
-            "paragraphTag": 'p'
-        }
+            paragraphTag: 'p',
+        };
         let converter = new QuillDeltaToHtmlConverter(delta, cfg);
+        // @ts-ignore
+        converter.renderCustomWith(function (customOp, contextOp) {
+            if (customOp.insert.type === 'img') {
+                let val = customOp.insert.value;
+                return `<img src="${val.src}"/>`
+            } else {
+                return "error!";
+            }
+        })
         return converter.convert();
     }
 };
