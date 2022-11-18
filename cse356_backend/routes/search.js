@@ -1,4 +1,5 @@
 const express = require('express');
+const { keyEncoding } = require('y-leveldb');
 const router = express.Router();
 const elasticClient = require("../elasticsearch")
 
@@ -19,37 +20,35 @@ router.get("/search", async (req, res) => {
                 fields: ["name", "content"]
             }
         },
-        // highlight: {
-        //     fields: {
-        //         name: {
-        //             order: 'score',
-        //             fragment_offset: 5
-        //         },
-        //         content: {
-        //             order: 'score',
-        //             fragment_offset: 5
-        //         }
-        //     }
-        // },
         highlight: {
-            type: "unified",
-            number_of_fragments: 3,
             fields: {
+                name: {
+                    order: 'score',
+                    fragment_size: 150
+                },
                 content: {
-
+                    order: 'score',
+                    fragment_size: 150
                 }
             }
         },
         size: 10,
-        fields: ["name", "content"]
+        fields: ["name", "content"],
     })
     res.json(result);
 })
 
 router.get("/suggest", async (req, res) => {
-    let query = req.params.q;
-    console.log(query);
-    res.send("suggest")
+    let query = req.query.q;
+    const result = await elasticClient.search({
+        query: {
+            prefix: {
+                "content.keyword": query
+            }
+        }
+    });
+    console.log(result)
+    res.send(result)
 })
 
 module.exports = router;
