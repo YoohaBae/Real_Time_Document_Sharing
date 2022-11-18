@@ -1,4 +1,5 @@
 const express = require('express');
+const elasticClient = require("../elasticsearch")
 const Collection = require('../models/collection-model');
 const User = require("../models/user-model");
 const router = express.Router();
@@ -71,9 +72,19 @@ router.post('/create', async (req, res) => {
         })
     } else {
         let id = collection.id;
-        res.send({
-            "id": id
+        await elasticClient.index({
+            index: 'docs',
+            id: id,
+            document: {
+                name: collectionName,
+                content: ""
+            }
+        }).then(r => {
+            res.send({
+                "id": id
+            })
         })
+
     }
 })
 

@@ -6,6 +6,7 @@ const User = require('../models/user-model');
 const connections = require('../connections');
 const emitters = require('../emitters');
 const EventEmitter = require('events');
+const elasticClient = require("../elasticsearch")
 EventEmitter.setMaxListeners(0);
 
 const yDocs = {};
@@ -161,6 +162,14 @@ router.post('/op/:id', async (req, res) => {
   yjs.applyUpdate(ydoc, array, clientID);
   //yjs.logUpdate(array);
   yDocs[docId] = ydoc;
+  let content = ydoc.getText('test2').toString();
+  await elasticClient.update({
+    index: 'docs',
+    id: docId,
+    doc: {
+      content: content
+    }
+  })
   const Collection = require('../models/collection-model');
   let filter = { id: docId };
   let update = { editTime: Date.now() };
