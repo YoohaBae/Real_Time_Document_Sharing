@@ -13,6 +13,7 @@ const apiRoutes = require('./routes/api');
 const userRoutes = require('./routes/user');
 const mediaRoutes = require('./routes/media');
 const collectionRoutes = require('./routes/collection');
+const searchRoutes = require('./routes/search');
 
 app.use(cors({
     credentials: true,
@@ -43,6 +44,7 @@ app.use('/api', apiRoutes);
 app.use('/users', userRoutes);
 app.use('/collection', collectionRoutes);
 app.use('/media', mediaRoutes);
+app.use('/index', searchRoutes);
 
 app.get('/library/crdt.js', (req, res) => {
     res.sendFile(directory + 'cse356_backend/public/library/crdt.js');

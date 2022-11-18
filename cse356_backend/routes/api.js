@@ -163,6 +163,7 @@ router.post('/op/:id', async (req, res) => {
   //yjs.logUpdate(array);
   yDocs[docId] = ydoc;
   let content = ydoc.getText('test2').toString();
+  console.log(content);
   await elasticClient.update({
     index: 'docs',
     id: docId,
