@@ -14,6 +14,13 @@ const createIndex = async (indexName) => {
                             }
                         }
                     }
+                },
+                "mappings": {
+                    "properties" : {
+                        "suggest" : {
+                            "type" : "completion"
+                        },
+                    }
                 }
             }
         });

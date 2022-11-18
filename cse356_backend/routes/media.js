@@ -29,7 +29,8 @@ const upload = multer({
     if (
       file.mimetype == 'image/png' ||
       file.mimetype == 'image/jpg' ||
-      file.mimetype == 'image/jpeg'
+      file.mimetype == 'image/jpeg' ||
+      file.mimetype == "image/gif"
     ) {
       cb(null, true);
     } else {
@@ -82,7 +83,8 @@ router.post('/upload', upload, (req, res) => {
   if (
     mimetype == 'image/png' ||
     mimetype == 'image/jpg' ||
-    mimetype == 'image/jpeg'
+    mimetype == 'image/jpeg' ||
+    mimetype == 'image/gif'
   ) {
     res.send({
       mediaid,
@@ -100,13 +102,16 @@ router.get('/access/:mediaid', (req, res) => {
   const file1 = mediaDir + id + '.jpeg';
   const file2 = mediaDir + id + '.jpg';
   const file3 = mediaDir + id + '.png';
+  const file4 = mediaDir + id + '.gif';
   if (fs.existsSync(file1)) {
     res.sendFile(file1);
   } else if (fs.existsSync(file2)) {
     res.sendFile(file2);
   } else if (fs.existsSync(file3)) {
     res.sendFile(file3);
-  } else {
+  } else if (fs.existsSync(file4)) {
+    res.sendFile(file4);
+  }else {
     res.send({
       error: true,
       message: 'File not Found',

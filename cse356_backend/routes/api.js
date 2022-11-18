@@ -155,6 +155,7 @@ router.get('/connect/:id', async (req, res) => {
 
 router.post('/op/:id', async (req, res) => {
   const docId = req.params.id.toString();
+  console.log(docId)
   const clientID = req.body.clientID;
   let array = jsonToUint8Array(req.body.update);
   let ydoc = yDocs[docId];
@@ -163,13 +164,15 @@ router.post('/op/:id', async (req, res) => {
   //yjs.logUpdate(array);
   yDocs[docId] = ydoc;
   let content = ydoc.getText('test2').toString();
-  console.log(content);
-  await elasticClient.update({
+  elasticClient.update({
     index: 'docs',
     id: docId,
     doc: {
-      content: content
-    }
+      content: content,
+      suggest: {
+        input: content
+      }
+    },
   })
   const Collection = require('../models/collection-model');
   let filter = { id: docId };
