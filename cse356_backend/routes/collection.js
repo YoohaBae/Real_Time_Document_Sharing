@@ -97,7 +97,16 @@ router.post('/delete', async (req, res) => {
             message: 'Unable to delete collection',
         })
     } else {
-        res.json({})
+        let id = collectionId;
+        await elasticClient.delete({
+            index: 'docs',
+            id: id
+        }).then(r => {
+            res.json({})
+        }).catch(err => {
+            console.log(err)
+            res.json({})
+        })
     }
 })
 

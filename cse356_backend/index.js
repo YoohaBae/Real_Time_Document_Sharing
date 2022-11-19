@@ -26,15 +26,6 @@ const directory = path.join(__dirname, '../');
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(
-    sessions({
-        secret: '6306d39f58d8bb3ef7f6bc99',
-        saveUninitialized: true,
-        cookie: {httpOnly: true},
-        resave: false,
-    })
-);
-
 app.use((req, res, next) => {
     res.setHeader('X-CSE356', '6306d39f58d8bb3ef7f6bc99');
     next();

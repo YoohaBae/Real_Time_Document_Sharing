@@ -1,16 +1,18 @@
 const express = require('express');
 const yjs = require('yjs');
-const { LeveldbPersistence } = require('y-leveldb');
+//const { LeveldbPersistence } = require('y-leveldb');
 const router = express.Router();
 const User = require('../models/user-model');
 const connections = require('../connections');
 const emitters = require('../emitters');
 const EventEmitter = require('events');
-const elasticClient = require("../elasticsearch")
+//const elasticClient = require("../elasticsearch")
 EventEmitter.setMaxListeners(0);
 
-const yDocs = {};
+const yDocs = require("../ydocs");
+const updatedDocIds = require("../updatedDocIds");
 const cursors = {};
+
 
 //const persistence = new LeveldbPersistence('./db-storage')
 
@@ -31,8 +33,13 @@ const jsonToUint8Array = (object) => {
 };
 
 const auth = async (req, res, next) => {
-  const key = req.session.key;
+  // console.log("cookies: ");
+  // console.log(req.cookies)
+  // console.log(req.cookies.key);
+  // console.log("requesting auth")
+  const key = req.cookies.key;
   if (!key) {
+    // console.log("no key")
     res.send({
       error: true,
       message: 'User is not authenticated',
@@ -41,6 +48,7 @@ const auth = async (req, res, next) => {
     try {
       const user = await User.findOne({ key });
       if (!user) {
+        // console.log("user not auth")
         res.send({
           error: true,
           message: 'User is not authenticated',
@@ -49,6 +57,7 @@ const auth = async (req, res, next) => {
         next();
       }
     } catch {
+      // console.log("user not auth2")
       res.send({
         error: true,
         message: 'User is not authenticated',
@@ -61,13 +70,14 @@ router.use(auth);
 
 router.get('/connect/:id', async (req, res) => {
   const docId = req.params.id.toString();
-  connections[req.session.id] = res;
-  req.session.docId = docId;
+  connections[req.cookies.id] = res;
+  res.cookie('docId', docId, { httpOnly: true });
+  // console.log("connection");
   let eventID = 0;
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
-    Connection: 'keep-alive',
+    'Connection': 'keep-alive',
   });
   let yDoc = null;
   let emitter = null;
@@ -146,8 +156,8 @@ router.get('/connect/:id', async (req, res) => {
 
   req.on('close', () => {
     emitter.emit('updateCursor', {
-      session_id: req.session.id,
-      name: req.session.name,
+      session_id: req.cookies.id,
+      name: req.cookies.name,
       index: -1,
     });
   });
@@ -155,7 +165,6 @@ router.get('/connect/:id', async (req, res) => {
 
 router.post('/op/:id', async (req, res) => {
   const docId = req.params.id.toString();
-  console.log(docId)
   const clientID = req.body.clientID;
   let array = jsonToUint8Array(req.body.update);
   let ydoc = yDocs[docId];
@@ -163,21 +172,12 @@ router.post('/op/:id', async (req, res) => {
   yjs.applyUpdate(ydoc, array, clientID);
   //yjs.logUpdate(array);
   yDocs[docId] = ydoc;
-  let content = ydoc.getText('test2').toString();
-  elasticClient.update({
-    index: 'docs',
-    id: docId,
-    doc: {
-      content: content,
-      suggest: {
-        input: content
-      }
-    },
-  })
+
   const Collection = require('../models/collection-model');
   let filter = { id: docId };
   let update = { editTime: Date.now() };
   let collection = await Collection.findOneAndUpdate(filter, update);
+  updatedDocIds.add(docId);
   // let data = yDocs[docId].getText(docId);
   res.json({});
 });
@@ -190,8 +190,8 @@ router.post('/presence/:id', async (req, res) => {
   const cursorData = {
     index,
     length,
-    session_id: req.session.id,
-    name: req.session.name,
+    session_id: req.cookies.id,
+    name: req.cookies.name,
   };
   // if (cursorArr) {
   //   cursorArr[req.session.id] = cursorData;

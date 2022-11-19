@@ -3,6 +3,7 @@ const nodemailer = require('nodemailer');
 const User = require('../models/user-model');
 const connections = require('../connections');
 const emitters = require('../emitters');
+const { v4: uuidv4 } = require('uuid');
 
 const router = express.Router();
 
@@ -148,18 +149,21 @@ router.post('/login', async (req, res) => {
   let status = 'OK';
   let statusCode = 200;
   const user = await verifyPassword(email, password);
+  // console.log(email);
+  // console.log(password);
   if (!user) {
+    // console.log("wrong password")
     res.send({
       error: true,
       message: 'Invalid Credential',
     });
     return;
   } else {
+    // console.log("correct password")
     res.cookie('key', user.key, { httpOnly: true });
-    req.session.key = user.key;
-    req.session.name = user.name;
-    // console.log(req.session);
-    // console.log(req.session.id);
+    res.cookie('name', user.name, { httpOnly: true });
+    res.cookie('id', uuidv4(), {httpOnly: true})
+    // console.log("set cookies")
   }
   res.send({
     name: user.name,
@@ -170,22 +174,22 @@ router.post('/logout', async (req, res) => {
   if (!req.cookies.key) {
     res.json({});
   } else {
-    res.clearCookie('key', { httpOnly: true });
-    if (connections[req.session.id]) {
-      connections[req.session.id].end();
-      delete connections[req.session.id];
+    if (connections[req.cookies.id]) {
+      connections[req.cookies.id].end();
+      delete connections[req.cookies.id];
     }
-    if (req.session.docId) {
-      const emitter = emitters[req.session.docId];
+    if (req.cookies.docId) {
+      const emitter = emitters[req.cookies.docId];
       emitter.emit('updateCursor', {
-        sessionId: req.session.id,
-        name: req.session.name,
+        sessionId: req.cookies.id,
+        name: req.cookies.name,
         index: -1,
       });
     }
-    req.session.destroy(function (err) {
-      console.log('Destroyed session');
-    });
+    res.clearCookie("id")
+    res.clearCookie("docId")
+    res.clearCookie("name")
+    res.clearCookie("key")
     res.json({});
   }
 });
@@ -198,14 +202,14 @@ router.get('/verify', async (req, res) => {
   // console.log('email: ' + req.query.email);
   // console.log('key ' + req.query.key);
   if (!(await verifyKey(email, key))) {
-    console.log("invalid");
+    // console.log("invalid");
     res.send({
       error: true,
       message: 'Invalid/Expired Verification Link',
     });
     return;
   }
-  console.log("verified");
+  // console.log("verified");
   res.send({
     "status": status
   });
