@@ -17,9 +17,9 @@ const createIndex = async (indexName) => {
                 },
                 "mappings": {
                     "properties" : {
-                        "suggest" : {
-                            "type" : "completion"
-                        },
+                        "suggest": {
+                            "type": "completion"
+                          }
                     }
                 }
             }
