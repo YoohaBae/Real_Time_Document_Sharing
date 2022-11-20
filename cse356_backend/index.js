@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const db = require('./db');
-const elasticClient = require('./elasticsearch');
+//const elasticClient = require('./elasticsearch');
 const sessions = require('express-session');
 const path = require('path');
 

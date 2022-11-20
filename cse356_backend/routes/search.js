@@ -45,7 +45,7 @@ function updateDocuments() {
         try {
             await elasticClient.update({
                 index: 'docs',
-                refresh: true,
+                refresh: 'wait_for',
                 id: docId,
                 doc: {
                     content: content,
@@ -62,7 +62,7 @@ function updateDocuments() {
     })
 }
 
-setInterval(updateDocuments, 750);
+setInterval(updateDocuments, 1000);
 
 router.get("/search", async (req, res) => {
     let query = req.query.q;

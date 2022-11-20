@@ -35,13 +35,13 @@ const jsonToUint8Array = (object) => {
 };
 
 const auth = async (req, res, next) => {
-  // console.log("cookies: ");
+  console.log("cookies: ");
   // console.log(req.cookies)
   // console.log(req.cookies.key);
-  // console.log("requesting auth")
+  console.log("requesting auth")
   const key = req.cookies.key;
   if (!key) {
-    // console.log("no key")
+    console.log("no key")
     res.send({
       error: true,
       message: 'User is not authenticated',
@@ -50,7 +50,7 @@ const auth = async (req, res, next) => {
     try {
       const user = await User.findOne({ key });
       if (!user) {
-        // console.log("user not auth")
+        console.log("user not auth")
         res.send({
           error: true,
           message: 'User is not authenticated',
@@ -59,7 +59,7 @@ const auth = async (req, res, next) => {
         next();
       }
     } catch {
-      // console.log("user not auth2")
+      console.log("user not auth2")
       res.send({
         error: true,
         message: 'User is not authenticated',
