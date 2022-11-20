@@ -85,6 +85,9 @@ router.post('/create', async (req, res) => {
             })
         })
 
+        // res.send({
+        //     "id": id
+        // })
     }
 })
 
@@ -107,6 +110,7 @@ router.post('/delete', async (req, res) => {
             console.log(err)
             res.json({})
         })
+        // res.json({})
     }
 })
 
