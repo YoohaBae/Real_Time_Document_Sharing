@@ -1,20 +1,20 @@
 const express = require('express');
-const nodemailer = require('nodemailer');
 const User = require('../models/user-model');
 const connections = require('../connections');
 const emitters = require('../emitters');
 const { v4: uuidv4 } = require('uuid');
-
-const router = express.Router();
+const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-  host: '127.0.0.1',
-  port: 25,
-  secure: false,
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
+    host: '127.0.0.1',
+    port: 25,
+    secure: false,
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+
+const router = express.Router();
 
 async function duplicateCredentials(email) {
   //check if duplicate credentials already exist in database
@@ -54,7 +54,6 @@ async function sendVerificationEmail(email) {
     const user = await User.findOneAndUpdate({ email }, { key });
     if (!user) return;
     // Send Email
-    console.log('transporter configuration done');
 
     let html_content = `http://iwomm.cse356.compas.cs.stonybrook.edu/users/verify?email=${encodeURIComponent(
       email
@@ -71,8 +70,6 @@ async function sendVerificationEmail(email) {
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.log(error);
-      } else {
-        console.log(info);
       }
     });
   } catch {
