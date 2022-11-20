@@ -11,17 +11,16 @@ const createIndex = async (indexName) => {
                                 "type": "custom",
                                 "tokenizer": "whitespace",
                                 "filter": ["lowercase", "stop", "stemmer"]
-                            }
+                            },
                         }
                     }
-                },
-                "mappings": {
-                    "properties" : {
-                        "suggest": {
-                            "type": "completion"
-                          }
+                }, "mappings": {
+                    "properties": {
+                      "suggest": {
+                        "type": "completion"
+                      }
                     }
-                }
+                  }
             }
         });
 }

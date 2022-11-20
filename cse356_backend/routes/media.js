@@ -70,7 +70,6 @@ router.use(auth);
 
 router.post('/upload', upload, (req, res) => {
   const image = req.file;
-  console.log(image);
   if (image === undefined) {
     res.send({
       error: true,
