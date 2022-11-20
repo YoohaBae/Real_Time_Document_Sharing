@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 const User = require('../models/user-model');
+const memcached = require('../memcached');
+
 
 const router = express.Router();
 
@@ -39,29 +41,66 @@ const upload = multer({
   },
 }).single('file');
 
+function getCache(key) {
+  memcached.get(key, function(err, data) {
+    if (err) {
+      console.log("error setting cache");
+      console.log(err);
+      return false;
+    }
+    else {
+      if (data) {
+        return true;
+      }
+    }
+  })
+}
+
+function setCache(key) {
+  memcached.set(key, 'true', 600, function(err) {
+    if (err) {
+      console.log("error setting cache");
+      console.log(err);
+    }
+  })
+}
+
 const auth = async (req, res, next) => {
+  // console.log("cookies: ");
+  // console.log(req.cookies)
+  // console.log(req.cookies.key);
+  // console.log("requesting auth")
   const key = req.cookies.key;
   if (!key) {
+    console.log("no key")
     res.send({
       error: true,
       message: 'User is not authenticated',
     });
   } else {
-    try {
-      const user = await User.findOne({ key });
-      if (!user) {
+    if (!getCache(key)) {
+      try {
+        const user = await User.findOne({ key });
+        if (!user) {
+          console.log("user not auth")
+          res.send({
+            error: true,
+            message: 'User is not authenticated',
+          });
+        } else {
+          setCache(key);
+          next();
+        }
+      } catch {
+        console.log("user not auth2")
         res.send({
           error: true,
           message: 'User is not authenticated',
         });
-      } else {
-        next();
       }
-    } catch {
-      res.send({
-        error: true,
-        message: 'User is not authenticated',
-      });
+    }
+    else {
+      console.log("cache login")
     }
   }
 };

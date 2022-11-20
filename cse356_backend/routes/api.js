@@ -7,12 +7,13 @@ const connections = require('../connections');
 const emitters = require('../emitters');
 const EventEmitter = require('events');
 const Collection = require('../models/collection-model');
-
-// const elasticClient = require("../elasticsearch")
-EventEmitter.setMaxListeners(0);
-
+const memcached = require('../memcached');
+const elasticClient = require("../elasticsearch")
 const yDocs = require("../ydocs");
 const updatedDocIds = require("../updatedDocIds");
+
+EventEmitter.setMaxListeners(0);
+
 const cursors = {};
 
 
@@ -34,11 +35,35 @@ const jsonToUint8Array = (object) => {
   return ret;
 };
 
+function getCache(key) {
+  memcached.get(key, function(err, data) {
+    if (err) {
+      console.log("error setting cache");
+      console.log(err);
+      return false;
+    }
+    else {
+      if (data) {
+        return true;
+      }
+    }
+  })
+}
+
+function setCache(key) {
+  memcached.set(key, 'true', 600, function(err) {
+    if (err) {
+      console.log("error setting cache");
+      console.log(err);
+    }
+  })
+}
+
 const auth = async (req, res, next) => {
-  console.log("cookies: ");
+  // console.log("cookies: ");
   // console.log(req.cookies)
   // console.log(req.cookies.key);
-  console.log("requesting auth")
+  // console.log("requesting auth")
   const key = req.cookies.key;
   if (!key) {
     console.log("no key")
@@ -47,23 +72,29 @@ const auth = async (req, res, next) => {
       message: 'User is not authenticated',
     });
   } else {
-    try {
-      const user = await User.findOne({ key });
-      if (!user) {
-        console.log("user not auth")
+    if (!getCache(key)) {
+      try {
+        const user = await User.findOne({ key });
+        if (!user) {
+          console.log("user not auth")
+          res.send({
+            error: true,
+            message: 'User is not authenticated',
+          });
+        } else {
+          setCache(key);
+          next();
+        }
+      } catch {
+        console.log("user not auth2")
         res.send({
           error: true,
           message: 'User is not authenticated',
         });
-      } else {
-        next();
       }
-    } catch {
-      console.log("user not auth2")
-      res.send({
-        error: true,
-        message: 'User is not authenticated',
-      });
+    }
+    else {
+      console.log("cache login")
     }
   }
 };
@@ -177,8 +208,26 @@ router.post('/op/:id', async (req, res) => {
   let filter = { id: docId };
   let update = { editTime: Date.now() };
   Collection.findOneAndUpdate(filter, update);
-  updatedDocIds.add(docId);
+  //updatedDocIds.add(docId);
   // let data = yDocs[docId].getText(docId);
+  let content = yDocs[docId].getText('test2').toString();
+  try {
+    elasticClient.index({
+        index: 'docs',
+        id: docId,
+        refresh: true,
+        document: {
+            content: content,
+            suggest: {
+                input: content.split(/[\r\n\s]+/)
+            }
+        },
+    })
+    //updatedDocIds.delete(docId);
+  }
+  catch (err){
+      console.log(err);
+  }
   res.json({});
 });
 

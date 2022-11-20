@@ -4,6 +4,7 @@ const connections = require('../connections');
 const emitters = require('../emitters');
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
+const memcached = require('../memcached');
 
 const transporter = nodemailer.createTransport({
     host: '127.0.0.1',
@@ -104,6 +105,24 @@ async function verifyPassword(email, password) {
   }
 }
 
+function setCache(key) {
+  memcached.set(key, 'true', 600, function(err) {
+    if (err) {
+      console.log("error setting cache");
+      console.log(err);
+    }
+  })
+}
+
+function setCache(key) {
+  memcached.set(key, 'true', 600, function(err) {
+    if (err) {
+      console.log("error setting cache");
+      console.log(err);
+    }
+  })
+}
+
 router.post('/signup', async (req, res) => {
   let name = req.body.name;
   let password = req.body.password;
@@ -159,7 +178,8 @@ router.post('/login', async (req, res) => {
     // console.log("correct password")
     res.cookie('key', user.key, { httpOnly: true });
     res.cookie('name', user.name, { httpOnly: true });
-    res.cookie('id', uuidv4(), {httpOnly: true})
+    res.cookie('id', uuidv4(), {httpOnly: true});
+    setCache(user.key);
     // console.log("set cookies")
   }
   res.send({
@@ -183,6 +203,7 @@ router.post('/logout', async (req, res) => {
         index: -1,
       });
     }
+    removeCache(req.cookies.key);
     res.clearCookie("id")
     res.clearCookie("docId")
     res.clearCookie("name")
