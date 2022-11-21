@@ -70,7 +70,7 @@ function updateDocuments() {
 }
 
 function run() {
-    setInterval(updateDocuments, 300);
+    setInterval(updateDocuments, 1200);
 }
 
 
