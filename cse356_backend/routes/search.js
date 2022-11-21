@@ -86,8 +86,8 @@ const auth = async (req, res, next) => {
 
 router.get("/search", async (req, res) => {
     let query = req.query.q;
-    console.log("search")
-    console.log(query)
+    // console.log("search")
+    // console.log(query)
     if (!query) {
         res.send({
             "error": true,
@@ -149,8 +149,8 @@ router.get("/search", async (req, res) => {
 
 router.get("/suggest", async (req, res) => {
     let query = req.query.q;
-    console.log("suggest")
-    console.log(query)
+    // console.log("suggest")
+    // console.log(query)
     // await updateDocuments();
     const data = await elasticClient.search({
       index: 'docs',
