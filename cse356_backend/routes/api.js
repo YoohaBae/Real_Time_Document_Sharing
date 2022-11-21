@@ -8,14 +8,17 @@ const emitters = require('../emitters');
 const EventEmitter = require('events');
 const Collection = require('../models/collection-model');
 const memcached = require('../memcached');
-const elasticClient = require("../elasticsearch")
+
 const yDocs = require("../ydocs");
 const updatedDocIds = require("../updatedDocIds");
+const queue = require("../queue");
+const queueDict = require("../queueDict")
 
 EventEmitter.setMaxListeners(0);
 
 const cursors = {};
-
+// const updateDict = {}
+// const updateQueue = []
 
 //const persistence = new LeveldbPersistence('./db-storage')
 
@@ -197,37 +200,39 @@ router.get('/connect/:id', async (req, res) => {
 });
 
 router.post('/op/:id', async (req, res) => {
-  const docId = req.params.id.toString();
-  const clientID = req.body.clientID;
-  let array = jsonToUint8Array(req.body.update);
-  let ydoc = yDocs[docId];
-  //let ydoc = persistence.getYDoc(id)
-  yjs.applyUpdate(ydoc, array, clientID);
-  //yjs.logUpdate(array);
-  yDocs[docId] = ydoc;
-  let filter = { id: docId };
-  let update = { editTime: Date.now() };
-  Collection.findOneAndUpdate(filter, update);
-  //updatedDocIds.add(docId);
-  // let data = yDocs[docId].getText(docId);
-  let content = yDocs[docId].getText('test2').toString();
-  try {
-    elasticClient.index({
-        index: 'docs',
-        id: docId,
-        refresh: true,
-        document: {
-            content: content,
-            suggest: {
-                input: content.split(/[\r\n\s]+/)
-            }
-        },
-    })
-    //updatedDocIds.delete(docId);
+  let docId = req.params.id.toString();
+  let clientID = req.body.clientID;
+  let update = req.body.update;
+  let array = jsonToUint8Array(update);
+  // let ydoc = yDocs[docId];
+  // //let ydoc = persistence.getYDoc(id)
+  // yjs.applyUpdate(ydoc, array, clientID);
+  // //yjs.logUpdate(array);
+  // yDocs[docId] = ydoc;
+  let queue_data = {
+    // update: req.body.update, 
+    // clientID: clientID, 
+    editTime: Date.now(), 
+    docId: docId
+  };
+  queue.push(queue_data);
+  let docUpdate = queueDict[docId]
+  if (docUpdate) {
+    if (queueDict[docId]["clientID"] != clientID) {
+      clientID = "multi"
+    }
+    queueDict[docId] = {
+      "clientID": clientID,
+      "update": [...docUpdate["update"], array]
+    }
+  } else {
+    queueDict[docId] = {
+      "clientID": clientID,
+      "update": [array]
+    }
   }
-  catch (err){
-      console.log(err);
-  }
+
+  // queueDict[docId] = [...queueDict[docId], array]
   res.json({});
 });
 

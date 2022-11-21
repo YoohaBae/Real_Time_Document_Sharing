@@ -86,9 +86,8 @@ const auth = async (req, res, next) => {
 
 router.get("/search", async (req, res) => {
     let query = req.query.q;
-    // console.log(query);
-    // console.log("search")
-    // console.log(query)
+    console.log("search")
+    console.log(query)
     if (!query) {
         res.send({
             "error": true,
@@ -144,7 +143,6 @@ router.get("/search", async (req, res) => {
           result.push({docid, name, snippet})
       }
   }
-  console.log(result);
   res.json(result);
     
 })

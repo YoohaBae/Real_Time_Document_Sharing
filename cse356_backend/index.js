@@ -3,8 +3,11 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const db = require('./db');
 //const elasticClient = require('./elasticsearch');
-const sessions = require('express-session');
+// const sessions = require('express-session');
+const run = require('./queueProcessor');
 const path = require('path');
+
+run();
 
 const app = express();
 const port = 8000;
@@ -15,6 +18,7 @@ const mediaRoutes = require('./routes/media');
 const collectionRoutes = require('./routes/collection');
 const searchRoutes = require('./routes/search');
 
+
 app.use(cors({
     credentials: true,
     origin: ['http://localhost:3000', "http://iwomm.cse356.compas.cs.stonybrook.edu", "http://209.151.155.172/"]
@@ -22,6 +26,7 @@ app.use(cors({
 const directory = path.join(__dirname, '../');
 
 // app.use(express.static('public'))
+
 
 app.use(express.json({limit: '100mb'}));
 app.use(express.urlencoded({limit: '100mb', extended: true}));
