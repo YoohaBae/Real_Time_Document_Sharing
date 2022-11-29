@@ -1,6 +1,12 @@
 const express = require('express');
-const yjs = require('yjs');
+// const yjs = require('yjs');
 //const { LeveldbPersistence } = require('y-leveldb');
+const initialize = require('../rabbitmq');
+let connection, channel;
+initialize().then(([conn, chan]) => {
+  connection = conn;
+  channel = chan;
+})
 const router = express.Router();
 const User = require('../models/user-model');
 const connections = require('../connections');
@@ -13,6 +19,7 @@ const yDocs = require("../ydocs");
 const updatedDocIds = require("../updatedDocIds");
 const queue = require("../queue");
 const queueDict = require("../queueDict")
+var clients = {}
 
 EventEmitter.setMaxListeners(0);
 
@@ -115,88 +122,95 @@ router.get('/connect/:id', async (req, res) => {
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive',
   });
-  let yDoc = null;
-  let emitter = null;
-  let event = 'sync';
-  if (yDocs[docId] !== undefined) {
-    yDoc = yDocs[docId];
-    emitter = emitters[docId];
-  } else {
-    yDoc = new yjs.Doc();
-    yDocs[docId] = yDoc;
-    emitter = new EventEmitter();
-    emitters[docId] = emitter;
-    cursors[docId] = {};
+  if (docId in clients) {
+    clients[docId].push({req, res, "clientID": req.cookies.id})
+  }
+  else {
+    clients[docId] = [{req, res, "clientID": req.cookies.id}]
   }
 
-  let state = await yjs.encodeStateAsUpdate(yDoc);
-  let message = {
-    update: state,
-    clientID: 'sync',
-    //presence: cursors[docId],
-  };
-  write(res, eventID, event, message);
-  eventID++;
-
-  for (let cursorID in cursors[docId]) {
-    let event = 'presence';
-    let cursor = cursors[docId][cursorID];
-    let message = {
-      session_id: cursor.session_id,
-      name: cursor.name,
-      cursor: {
-        index: cursor.index,
-        length: cursor.length,
-      },
-    };
-    write(res, eventID, event, message);
-    eventID++;
-  }
-
-  yDoc.on('update', (update, origin) => {
-    let event = 'update';
-    let message = {
-      update: update,
-      clientID: origin,
-    };
-    write(res, eventID, event, message);
-    eventID++;
-  });
-
-  emitter.on('updateCursor', (cursor) => {
-    let event = 'presence';
-    let message = {
-      session_id: cursor.session_id,
-      name: cursor.name,
-      cursor: {
-        index: cursor.index,
-        length: cursor.length,
-      },
-    };
-    const cursorArr = cursors[docId];
-    if (cursorArr) {
-      if (cursor != null && cursor.index != -1)
-        cursorArr[cursor.session_id] = cursor;
-      else {
-        message = {
-          session_id: cursor.session_id,
-          name: cursor.name,
-          cursor: {},
-        };
-        delete cursorArr[cursor.session_id];
-      }
-    }
-    write(res, eventID, event, message);
-    eventID++;
-  });
-
-  req.on('close', () => {
-    emitter.emit('updateCursor', {
-      session_id: req.cookies.id,
-      name: req.cookies.name,
-      index: -1,
-    });
-  });
+    // let yDoc = null;
+    // let emitter = null;
+    // let event = 'sync';
+    // if (yDocs[docId] !== undefined) {
+    //     yDoc = yDocs[docId];
+    //     emitter = emitters[docId];
+    // } else {
+    //     yDoc = new yjs.Doc();
+    //     yDocs[docId] = yDoc;
+    //     emitter = new EventEmitter();
+    //     emitters[docId] = emitter;
+    //     cursors[docId] = {};
+    // }
+    //
+    // let state = await yjs.encodeStateAsUpdate(yDoc);
+    // let message = {
+    //     update: state,
+    //     clientID: 'sync',
+    //     //presence: cursors[docId],
+    // };
+    // write(res, eventID, event, message);
+    // eventID++;
+    //
+    // for (let cursorID in cursors[docId]) {
+    //     let event = 'presence';
+    //     let cursor = cursors[docId][cursorID];
+    //     let message = {
+    //         session_id: cursor.session_id,
+    //         name: cursor.name,
+    //         cursor: {
+    //             index: cursor.index,
+    //             length: cursor.length,
+    //         },
+    //     };
+    //     write(res, eventID, event, message);
+    //     eventID++;
+    // }
+    //
+    // yDoc.on('update', (update, origin) => {
+    //     let event = 'update';
+    //     let message = {
+    //         update: update,
+    //         clientID: origin,
+    //     };
+    //     write(res, eventID, event, message);
+    //     eventID++;
+    // });
+    //
+    // emitter.on('updateCursor', (cursor) => {
+    //     let event = 'presence';
+    //     let message = {
+    //         session_id: cursor.session_id,
+    //         name: cursor.name,
+    //         cursor: {
+    //             index: cursor.index,
+    //             length: cursor.length,
+    //         },
+    //     };
+    //     const cursorArr = cursors[docId];
+    //     if (cursorArr) {
+    //         if (cursor != null && cursor.index != -1)
+    //             cursorArr[cursor.session_id] = cursor;
+    //         else {
+    //             message = {
+    //                 session_id: cursor.session_id,
+    //                 name: cursor.name,
+    //                 cursor: {},
+    //             };
+    //             delete cursorArr[cursor.session_id];
+    //         }
+    //     }
+    //     write(res, eventID, event, message);
+    //     eventID++;
+    // });
+    //
+    // req.on('close', () => {
+    //     emitter.emit('updateCursor', {
+    //         session_id: req.cookies.id,
+    //         name: req.cookies.name,
+    //         index: -1,
+    //     });
+    // });
 });
 
 router.post('/op/:id', async (req, res) => {
@@ -210,9 +224,9 @@ router.post('/op/:id', async (req, res) => {
   // //yjs.logUpdate(array);
   // yDocs[docId] = ydoc;
   let queue_data = {
-    // update: req.body.update, 
-    // clientID: clientID, 
-    editTime: Date.now(), 
+    // update: req.body.update,
+    // clientID: clientID,
+    editTime: Date.now(),
     docId: docId
   };
   queue.push(queue_data);
