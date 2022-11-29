@@ -129,6 +129,13 @@ router.get('/connect/:id', async (req, res) => {
     clients[docId] = [{req, res, "clientID": req.cookies.id}]
   }
 
+  await channel.assertQueue("events");
+  channel.consume("events", message => {
+    const input = JSON.parse(message.content.toString());
+    console.log(input);
+  })
+
+
     // let yDoc = null;
     // let emitter = null;
     // let event = 'sync';

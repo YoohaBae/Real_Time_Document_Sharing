@@ -8,7 +8,6 @@ initialize().then(([conn, chan]) => {
 const router = express.Router();
 const User = require('../models/user-model');
 const connections = require('../connections');
-const emitters = require('../emitters');
 const EventEmitter = require('events');
 const memcached = require('../memcached');
 
@@ -106,13 +105,19 @@ router.get('/connect/:id', async (req, res) => {
     clients[docId] = [{req, res, "clientID": req.cookies.id}]
   }
 
-  await channel.assertQueue("events");
-  channel.consume("events", (message) => {
+  await channel.assertQueue("event-updates");
+  channel.consume("event-updates", (message) => {
     const input = JSON.parse(message.content.toString());
     console.log(input);
     channel.ack(message);
   })
 
+  await channel.assertQueue("event-cursors");
+  channel.consume("event-cursors", (message) => {
+    const input = JSON.parse(message.content.toString());
+    console.log(input);
+    channel.ack(message);
+  })
 
     // let yDoc = null;
     // let emitter = null;

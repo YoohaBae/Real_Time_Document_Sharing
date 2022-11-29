@@ -2,21 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const db = require('./db');
-//const elasticClient = require('./elasticsearch');
-// const sessions = require('express-session');
-const run = require('./queueProcessor');
 const path = require('path');
-
-run();
 
 const app = express();
 const port = 8000;
 
-const apiRoutes = require('./routes/api');
 const userRoutes = require('./routes/user');
-const mediaRoutes = require('./routes/media');
 const collectionRoutes = require('./routes/collection');
-const searchRoutes = require('./routes/search');
 
 
 app.use(cors({
@@ -37,11 +29,8 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use('/api', apiRoutes);
 app.use('/users', userRoutes);
 app.use('/collection', collectionRoutes);
-app.use('/media', mediaRoutes);
-app.use('/index', searchRoutes);
 
 app.get('/library/crdt.js', (req, res) => {
     res.sendFile(directory + 'cse356_backend/public/library/crdt.js');

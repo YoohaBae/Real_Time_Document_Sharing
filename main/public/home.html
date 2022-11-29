@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="collections">
+</div>
+<form onsubmit="createDocument(this)">
+    <label>Document Name:</label>
+    <input id="name" type="text"/>
+    <button type="submit">Create</button>
+</form>
+<button onclick="logout()">Logout</button>
+<script>
+    const login = () => {
+        let body = {
+            "email": "Yooha.Bae@stonybrook.edu",
+            "password": "1234"
+        }
+        axios.post('http://localhost:80/users/login', body, {withCredentials: true}).then(response => {
+            console.log(response)
+            getRecentCollections();
+        });
+    }
+    const getRecentCollections = () => {
+        axios.get('http://localhost:80/collection/list', {withCredentials: true}).then(response => {
+            let collections = response.data;
+            let collectionsDiv = document.getElementById("collections");
+            collectionsDiv.innerHTML = "";
+            for (let i = 0; i < collections.length; i++) {
+                let collectionDiv = document.createElement('div');
+                let editLink = document.createElement('a');
+                editLink.href = "http://localhost:80/edit/" + collections[i]["id"];
+                editLink.text = collections[i]["name"]
+                let deleteButton = document.createElement('button');
+                deleteButton.innerText = "delete";
+                deleteButton.addEventListener('click', function deleteDocument() {
+                    let body = {
+                        "id": collections[i]["id"]
+                    }
+                    axios.post('http://localhost:80/collection/delete', body, {withCredentials: true}).then((response) => {
+                        console.log(response.data)
+                        getRecentCollections();
+                    }).catch(error => {
+                        console.log(error);
+                    })
+                })
+                collectionDiv.appendChild(editLink);
+                collectionDiv.appendChild(deleteButton);
+                collectionsDiv.appendChild(collectionDiv);
+            }
+        })
+    }
+    const createDocument = (event) => {
+        if (event.name.value !== undefined) {
+            let body = {
+                "name": event.name.value
+            }
+            axios.post('http://localhost:80/collection/create', body, {withCredentials: true}).then(response => {
+                console.log(response)
+                getRecentCollections();
+            });
+        } else {
+            alert("No input value");
+        }
+    }
+    const logout = () => {
+        axios.post('http://localhost:80/users/logout', {withCredentials: true}).then(response => {
+            console.log(response);
+        });
+    }
+    login();
+</script>
+</body>
+</html>

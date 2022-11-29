@@ -16,8 +16,8 @@ initialize().then(async ([conn, chan]) => {
 })
 
 async function runUpdateConsumer() {
-    await channel.assertQueue("update");
-    channel.consume("update", (message) => {
+    await channel.assertQueue("updates");
+    channel.consume("updates", (message) => {
       const input = JSON.parse(message.content.toString());
       console.log(input);
       channel.ack(message);
@@ -26,8 +26,9 @@ async function runUpdateConsumer() {
 
 
 async function runCursorConsumer() {
-    await channel.assertQueue("cursor");
-    channel.consume("cursor", (message) => {
+    await channel.assertQueue("cursors");
+    channel.consume("cursors", (message) => {
+        console.log(message.content)
       const input = JSON.parse(message.content.toString());
       console.log(input);
       channel.ack(message);

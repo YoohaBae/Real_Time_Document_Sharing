@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <link
+      href="https://cdn.quilljs.com/1.3.6/quill.snow.css"
+      rel="stylesheet"
+    />
+    <script>
+      var exports = {};
+    </script>
+    <script src="../library/crdt.js"></script>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+  </head>
+  <body>
+    <div id="editor"></div>
+    <script>
+      function getDocumentID() {
+        let pageUrl = window.location.pathname;
+        return pageUrl.split('/edit/')[1];
+      }
+
+      function establishConnection(documentID) {
+        let url = 'http://localhost:80/api/connect/' + documentID;
+        let eventSource = new EventSource(url);
+        eventSource.onopen = function (e) {
+          console.log('Event: open');
+        };
+
+        eventSource.onerror = function (e) {
+          console.log('Event: error');
+          if (this.readyState === EventSource.CONNECTING) {
+            console.log(`Reconnecting (readyState=${this.readyState})...`);
+          } else {
+            console.log('Error has occured.');
+          }
+        };
+
+        eventSource.addEventListener('bye', function (e) {
+          console.log('Event: bye, data: ' + e.data);
+        });
+
+        eventSource.onmessage = function (e) {
+          console.log('Event: message, data: ' + e.data);
+        };
+      }
+
+      function updateCb(update) {
+        document.write('<nobr>update> ', update, '</nobr><br/>');
+      }
+
+      var toolbarOptions = [
+        ['bold', 'italic', 'underline', 'strike'], // toggled buttons
+        ['link', 'image'],
+      ];
+
+      var quill = new Quill('#editor', {
+        modules: {
+          toolbar: toolbarOptions,
+        },
+        theme: 'snow',
+      });
+      // Insert Image stuff
+      const insertToEditor = (url) => {
+        const range = quill.getSelection();
+        quill.insertEmbed(range.index, 'image', url);
+      };
+
+      const saveToServer = async (file) => {
+        const body = new FormData();
+        body.append('file', file);
+
+        const res = await fetch('/media/upload', {
+          method: 'POST',
+          body,
+        });
+        let mediaid = '';
+        const data = await res.json();
+        mediaid = data.mediaid;
+        insertToEditor(`/media/access/${mediaid}`);
+      };
+      // Open Dialog to select Image File
+      const selectLocalImage = () => {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+
+        input.onchange = () => {
+          const file = input.files[0];
+          saveToServer(file);
+        };
+      };
+
+      if (quill) {
+        // Add custom handler for Image Upload
+        quill.getModule('toolbar').addHandler('image', selectLocalImage);
+      }
+      // End Insert Image Stuff
+      let documentID = getDocumentID();
+      establishConnection(documentID);
+      var crdt = new exports.CRDT(updateCb);
+      crdt.insert(0, 'Hello');
+      crdt.insert(5, 'World', { bold: true });
+      crdt.insert(5, ' ');
+      crdt.insert(12, '!');
+      var text = crdt.toHTML();
+      quill.clipboard.dangerouslyPasteHTML(text);
+    </script>
+  </body>
+</html>
