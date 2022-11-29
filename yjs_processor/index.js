@@ -3,6 +3,7 @@ const yjs = require('yjs');
 const db = require('./db');
 const Collection = require('./models/collection-model');
 const queueDict = require('./queueDict');
+const persistence = new LeveldbPersistence('./yDocStorage');
 const initialize = require('./rabbitmq');
 
 let connection, channel;
