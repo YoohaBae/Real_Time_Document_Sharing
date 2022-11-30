@@ -1,7 +1,7 @@
 const yjs = require('yjs');
 const db = require('./db');
 const Collection = require('./models/collection-model');
-// const queueDict = require('./queueDict');
+const queueDict = require('./queueDict');
 const { MongodbPersistence } = require('y-mongodb');
 const initialize = require('./rabbitmq');
 const persistence = new MongodbPersistence('mongodb://localhost:27017/Milestone', 'yDocs');
@@ -10,9 +10,9 @@ let connection, channel;
 initialize().then(async ([conn, chan]) => {
   connection = conn;
   channel = chan;
-  console.log("initialized channel and connection");
   runUpdateConsumer();
   runCursorConsumer();
+  run();
 })
 
 const jsonToUint8Array = (object) => {
@@ -31,16 +31,21 @@ async function runUpdateConsumer() {
       const output = JSON.parse(message.content.toString());
       channel.ack(message);
       let {update, clientID, editTime, docId} = output;
-      updateQueueData = {
-          update, clientID, docId
-      }
-      channel.sendToQueue('event-updates', Buffer.from(JSON.stringify(updateQueueData)));
-      let filter = {id: docId};
+      let docUpdate = queueDict[docId];
       let array = jsonToUint8Array(update);
-      persistence.storeUpdate(docId, array).then((res) => {
-        Collection.findOneAndUpdate(filter, editTime);
-      })
-
+      if (docUpdate) {
+        queueDict[docId] = {
+          "clientID": clientID,
+          "update": [...docUpdate["update"], array],
+          "editTime": editTime
+        }
+      } else {
+        queueDict[docId] = {
+          "clientID": clientID,
+          "update": [array],
+          "editTime": editTime
+        }
+      }
     })
 }
 
@@ -51,4 +56,33 @@ async function runCursorConsumer() {
       const input = JSON.parse(message.content.toString());
       channel.ack(message);
     })
+}
+
+function updateDocuments() {
+  for (let docId in queueDict) {
+    let updates = queueDict[docId]["update"];
+    let clientID = queueDict[docId]["clientID"];
+    let editTime = queueDict[docId]["editTime"];
+    let update = null;
+    if (updates.length > 1) {
+      update = yjs.mergeUpdates(updates);
+    }
+    else {
+      update = updates[0];
+    }
+    updateQueueData = {
+      update, clientID, docId
+    }
+    channel.sendToQueue('event-updates', Buffer.from(JSON.stringify(updateQueueData)));
+      delete queueDict[docId];
+    let filter = {id: docId};
+    persistence.storeUpdate(docId, update).then((res) => {
+      Collection.findOneAndUpdate(filter, editTime);
+    })
+  }
+}
+
+function run() {
+  console.log("running")
+  setInterval(updateDocuments, 500);
 }

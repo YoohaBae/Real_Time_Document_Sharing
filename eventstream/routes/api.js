@@ -97,7 +97,6 @@ router.get('/connect/:id', async (req, res) => {
   connections[req.cookies.id] = res;
   res.cookie('docId', docId, { httpOnly: true });
   // console.log("connection");
-  let eventID = 0;
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -110,10 +109,10 @@ router.get('/connect/:id', async (req, res) => {
     clients[docId] = [{req, res, "clientID": req.cookies.id}]
   }
 
-
+  let eventID = 0;
   persistence.getYDoc(docId).then(async (yDoc) => {
     let syncEvent = "sync";
-    let state = await yjs.encodeStateAsUpdate(yDoc);
+    let state = yjs.encodeStateAsUpdate(yDoc);
     let data = {
       update: state,
       clientID: 'sync',
@@ -136,14 +135,7 @@ router.get('/connect/:id', async (req, res) => {
     //     cursors[docId] = {};
     // }
     //
-    // let state = await yjs.encodeStateAsUpdate(yDoc);
-    // let message = {
-    //     update: state,
-    //     clientID: 'sync',
-    //     //presence: cursors[docId],
-    // };
-    // write(res, eventID, event, message);
-    // eventID++;
+
     //
     // for (let cursorID in cursors[docId]) {
     //     let event = 'presence';
@@ -159,16 +151,6 @@ router.get('/connect/:id', async (req, res) => {
     //     write(res, eventID, event, message);
     //     eventID++;
     // }
-    //
-    // yDoc.on('update', (update, origin) => {
-    //     let event = 'update';
-    //     let message = {
-    //         update: update,
-    //         clientID: origin,
-    //     };
-    //     write(res, eventID, event, message);
-    //     eventID++;
-    // });
     //
     // emitter.on('updateCursor', (cursor) => {
     //     let event = 'presence';
@@ -212,7 +194,7 @@ async function runEventUpdateConsumer() {
     const output = JSON.parse(message.content.toString());
     channel.ack(message);
     let {update, clientID, docId} = output;
-    let eventID = 100;
+    let eventID = 1;
     for (let i=0; i < clients[docId].length; i++) {
       let client = clients[docId][i];
       let updateEvent = "update";
