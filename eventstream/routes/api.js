@@ -1,9 +1,14 @@
 const express = require('express');
 const initialize = require('../rabbitmq');
+const { MongodbPersistence } = require('y-mongodb');
+const yjs = require('yjs');
+const persistence = new MongodbPersistence('mongodb://localhost:27017/Milestone', 'yDocs');
 let connection, channel;
 initialize().then(([conn, chan]) => {
   connection = conn;
   channel = chan;
+  runEventCursorConsumer();
+  runEventUpdateConsumer();
 })
 const router = express.Router();
 const User = require('../models/user-model');
@@ -87,16 +92,6 @@ const auth = async (req, res, next) => {
 
 router.use(auth);
 
-const jsonToUint8Array = (object) => {
-  let ret = null;
-  ret = new Uint8Array(Object.keys(object).length);
-  for (let key in object) {
-    // @ts-ignore
-    ret[key] = object[key];
-  }
-  return ret;
-};
-
 router.get('/connect/:id', async (req, res) => {
   const docId = req.params.id.toString();
   connections[req.cookies.id] = res;
@@ -115,21 +110,16 @@ router.get('/connect/:id', async (req, res) => {
     clients[docId] = [{req, res, "clientID": req.cookies.id}]
   }
 
-  await channel.assertQueue("event-updates");
-  channel.consume("event-updates", (message) => {
-    const output = JSON.parse(message.content.toString());
-    console.log("event update")
-    channel.ack(message);
-    let updateEvent = "update"
-    write(res, eventID, updateEvent, output);
-    eventID++;
-  })
 
-  await channel.assertQueue("event-cursors");
-  channel.consume("event-cursors", (message) => {
-    const input = JSON.parse(message.content.toString());
-    console.log(input);
-    channel.ack(message);
+  persistence.getYDoc(docId).then(async (yDoc) => {
+    let syncEvent = "sync";
+    let state = await yjs.encodeStateAsUpdate(yDoc);
+    let data = {
+      update: state,
+      clientID: 'sync',
+    };
+    write(res, eventID, syncEvent, data);
+    eventID++;
   })
 
     // let yDoc = null;
@@ -216,4 +206,32 @@ router.get('/connect/:id', async (req, res) => {
     // });
 });
 
+async function runEventUpdateConsumer() {
+  await channel.assertQueue("event-updates");
+  channel.consume("event-updates", (message) => {
+    const output = JSON.parse(message.content.toString());
+    channel.ack(message);
+    let {update, clientID, docId} = output;
+    let eventID = 100;
+    for (let i=0; i < clients[docId].length; i++) {
+      let client = clients[docId][i];
+      let updateEvent = "update";
+      if (clientID != client["clientID"]) {
+        let data = {
+          update, clientID
+        }
+        write(client["res"], eventID, updateEvent, data);
+      }
+    }
+    eventID++;
+  })
+}
+
+async function runEventCursorConsumer() {
+  await channel.assertQueue("event-cursors");
+  channel.consume("event-cursors", (message) => {
+    const input = JSON.parse(message.content.toString());
+    channel.ack(message);
+  })
+}
 module.exports = router;

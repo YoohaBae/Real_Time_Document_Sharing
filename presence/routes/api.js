@@ -103,6 +103,7 @@ router.post('/presence/:id', async (req, res) => {
     channel.sendToQueue(queue, Buffer.from(JSON.stringify(cursorQueueData)), {
       persistent: true
     });
+  res.json({})
 });
 
 module.exports = router;

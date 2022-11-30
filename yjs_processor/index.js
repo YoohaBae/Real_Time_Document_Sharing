@@ -30,7 +30,6 @@ async function runUpdateConsumer() {
     channel.consume("updates", async (message) => {
       const output = JSON.parse(message.content.toString());
       channel.ack(message);
-      console.log("processer has data");
       let {update, clientID, editTime, docId} = output;
       updateQueueData = {
           update, clientID, docId
@@ -39,7 +38,6 @@ async function runUpdateConsumer() {
       let filter = {id: docId};
       let array = jsonToUint8Array(update);
       persistence.storeUpdate(docId, array).then((res) => {
-        console.log(res);
         Collection.findOneAndUpdate(filter, editTime);
       })
 
