@@ -87,6 +87,16 @@ const auth = async (req, res, next) => {
 
 router.use(auth);
 
+const jsonToUint8Array = (object) => {
+  let ret = null;
+  ret = new Uint8Array(Object.keys(object).length);
+  for (let key in object) {
+    // @ts-ignore
+    ret[key] = object[key];
+  }
+  return ret;
+};
+
 router.get('/connect/:id', async (req, res) => {
   const docId = req.params.id.toString();
   connections[req.cookies.id] = res;
@@ -107,9 +117,12 @@ router.get('/connect/:id', async (req, res) => {
 
   await channel.assertQueue("event-updates");
   channel.consume("event-updates", (message) => {
-    const input = JSON.parse(message.content.toString());
-    console.log(input);
+    const output = JSON.parse(message.content.toString());
+    console.log("event update")
     channel.ack(message);
+    let updateEvent = "update"
+    write(res, eventID, updateEvent, output);
+    eventID++;
   })
 
   await channel.assertQueue("event-cursors");

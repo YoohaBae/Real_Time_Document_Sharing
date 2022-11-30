@@ -134,12 +134,12 @@ router.post('/delete', async (req, res) => {
         })
     } else {
         let id = collectionId;
-        elasticClient.delete({
-            index: 'docs',
-            id: id
-        }).catch(err => {
-            console.log(err)
-        })
+        // elasticClient.delete({
+        //     index: 'docs',
+        //     id: id
+        // }).catch(err => {
+        //     console.log(err)
+        // })
         res.json({})
     }
 })

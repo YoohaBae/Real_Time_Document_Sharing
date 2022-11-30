@@ -13,6 +13,7 @@
     "mongoose": "^6.7.4",
     "mongoose-sequence": "^5.3.1",
     "y-leveldb": "^0.1.1",
+    "y-mongodb": "^0.1.11",
     "yjs": "^13.5.42"
   }
 }

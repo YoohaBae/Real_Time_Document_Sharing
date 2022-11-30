@@ -1,5 +1,8 @@
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const express = require('express');
 const initialize = require('./rabbitmq');
+const db = require("./db");
 
 let connection, channel;
 initialize().then(([conn, chan]) => {
@@ -15,15 +18,21 @@ const queue = 'updates'
 const app = express();
 const port = 9000;
 
-const jsonToUint8Array = (object) => {
-  let ret = null;
-  ret = new Uint8Array(Object.keys(object).length);
-  for (let key in object) {
-    // @ts-ignore
-    ret[key] = object[key];
-  }
-  return ret;
-};
+app.use(cors({
+  credentials: true,
+  origin: ['http://localhost:3000', "http://iwomm.cse356.compas.cs.stonybrook.edu", "http://209.151.155.172/"]
+}));
+
+
+app.use(express.json({limit: '100mb'}));
+app.use(express.urlencoded({limit: '100mb', extended: true}));
+app.use(cookieParser());
+
+app.use((req, res, next) => {
+  res.setHeader('X-CSE356', '6306d39f58d8bb3ef7f6bc99');
+  next();
+});
+
 
 function getCache(key) {
   memcached.get(key, function(err, data) {
@@ -88,23 +97,22 @@ const auth = async (req, res, next) => {
 app.use(auth);
 
 app.post('/api/op/:id', async (req, res) => {
-    res.json({});
-    const docId = req.params.id.toString();
-    const clientID = req.body.clientID;
-    const update = req.body.update;
-    const array = jsonToUint8Array(update);
-    const queue_data = {
-        update: array,
-        clientID: clientID,
-        editTime: Date.now(),
-        docId: docId
-    };
-    await channel.assertQueue(queue, {
-        durable: true
-      });
-      channel.sendToQueue(queue, Buffer.from(JSON.stringify(queue_data)), {
-        persistent: true
-      });
+  res.json({});
+  const docId = req.params.id.toString();
+  const clientID = req.body.clientID;
+  const update = req.body.update;
+  const queue_data = {
+      update: update,
+      clientID: clientID,
+      editTime: Date.now(),
+      docId: docId
+  };
+  await channel.assertQueue(queue, {
+      durable: true
+    });
+    channel.sendToQueue(queue, Buffer.from(JSON.stringify(queue_data)), {
+      persistent: true
+    });
 });
 
 app.listen(port, () => {
