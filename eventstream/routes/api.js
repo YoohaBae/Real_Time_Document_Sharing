@@ -1,5 +1,6 @@
 const express = require('express');
 const initialize = require('../rabbitmq');
+const Cursor = require('../models/cursor-model');
 const { MongodbPersistence } = require('y-mongodb');
 const yjs = require('yjs');
 const persistence = new MongodbPersistence('mongodb://localhost:27017/Milestone', 'yDocs');
@@ -121,72 +122,51 @@ router.get('/connect/:id', async (req, res) => {
     eventID++;
   })
 
-    // let yDoc = null;
-    // let emitter = null;
-    // let event = 'sync';
-    // if (yDocs[docId] !== undefined) {
-    //     yDoc = yDocs[docId];
-    //     emitter = emitters[docId];
-    // } else {
-    //     yDoc = new yjs.Doc();
-    //     yDocs[docId] = yDoc;
-    //     emitter = new EventEmitter();
-    //     emitters[docId] = emitter;
-    //     cursors[docId] = {};
-    // }
-    //
-
-    //
-    // for (let cursorID in cursors[docId]) {
-    //     let event = 'presence';
-    //     let cursor = cursors[docId][cursorID];
-    //     let message = {
-    //         session_id: cursor.session_id,
-    //         name: cursor.name,
-    //         cursor: {
-    //             index: cursor.index,
-    //             length: cursor.length,
-    //         },
-    //     };
-    //     write(res, eventID, event, message);
-    //     eventID++;
-    // }
-    //
-    // emitter.on('updateCursor', (cursor) => {
-    //     let event = 'presence';
-    //     let message = {
-    //         session_id: cursor.session_id,
-    //         name: cursor.name,
-    //         cursor: {
-    //             index: cursor.index,
-    //             length: cursor.length,
-    //         },
-    //     };
-    //     const cursorArr = cursors[docId];
-    //     if (cursorArr) {
-    //         if (cursor != null && cursor.index != -1)
-    //             cursorArr[cursor.session_id] = cursor;
-    //         else {
-    //             message = {
-    //                 session_id: cursor.session_id,
-    //                 name: cursor.name,
-    //                 cursor: {},
-    //             };
-    //             delete cursorArr[cursor.session_id];
-    //         }
-    //     }
-    //     write(res, eventID, event, message);
-    //     eventID++;
-    // });
-    //
-    // req.on('close', () => {
-    //     emitter.emit('updateCursor', {
-    //         session_id: req.cookies.id,
-    //         name: req.cookies.name,
-    //         index: -1,
-    //     });
-    // });
+  // get all current cursors
+  let filter = {
+    "docId": docId
+  }
+  let cursors = await Cursor.find(filter);
+  console.log(cursors);
+  if (cursors != []) {
+    for (let cursorID in cursors) {
+      let presenceEvent = 'presence';
+      let cursor = cursors[cursorID];
+      let message = {
+          session_id: cursor.session_id,
+          name: cursor.name,
+          cursor: {
+              index: cursor.index,
+              length: cursor.length,
+          },
+      };
+      write(res, eventID, presenceEvent, message);
+      eventID++;
+    }
+  }
+ 
+    
+  req.on('close', async () => {
+    let name = req.cookies.name;
+    let session_id = req.cookies.id;
+    let index = -1;
+    let length = 0
+    const cursorQueueData = {
+      docId,
+      index,
+      length,
+      session_id,
+      name
+    };
+    queue = 'cursors'
+    await channel.assertQueue(queue, {durable:true});
+    channel.sendToQueue(queue, Buffer.from(JSON.stringify(cursorQueueData)), {
+      persistent: true
+    });
+  });
 });
+
+let eventID = 10000;
 
 async function runEventUpdateConsumer() {
   await channel.assertQueue("event-updates");
@@ -194,7 +174,7 @@ async function runEventUpdateConsumer() {
     const output = JSON.parse(message.content.toString());
     channel.ack(message);
     let {update, clientID, docId} = output;
-    let eventID = 1;
+
     for (let i=0; i < clients[docId].length; i++) {
       let client = clients[docId][i];
       let updateEvent = "update";
@@ -212,8 +192,32 @@ async function runEventUpdateConsumer() {
 async function runEventCursorConsumer() {
   await channel.assertQueue("event-cursors");
   channel.consume("event-cursors", (message) => {
-    const input = JSON.parse(message.content.toString());
+    const output = JSON.parse(message.content.toString());
     channel.ack(message);
+    let {docId, session_id, name, index, length} = output;
+    if (docId in clients){
+      for (let i=0; i < clients[docId].length; i++) {
+        let client = clients[docId][i];
+        let presenceEvent = 'presence';
+        let message = null;
+        if (index == -1) {
+          message = {
+            session_id,
+            name,
+            cursor: {},
+          };
+        }
+        else {
+          message = {
+            session_id, 
+            name,
+            cursor: { index, length }
+          };
+        }
+        write(client["res"], eventID, presenceEvent, message);
+        eventID++;
+    }
+    }
   })
 }
 module.exports = router;

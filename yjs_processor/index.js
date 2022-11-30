@@ -1,7 +1,9 @@
 const yjs = require('yjs');
 const db = require('./db');
 const Collection = require('./models/collection-model');
+const Cursor = require('./models/cursor-model');
 const queueDict = require('./queueDict');
+let recentCursors = {};
 const { MongodbPersistence } = require('y-mongodb');
 const initialize = require('./rabbitmq');
 const persistence = new MongodbPersistence('mongodb://localhost:27017/Milestone', 'yDocs');
@@ -53,8 +55,16 @@ async function runUpdateConsumer() {
 async function runCursorConsumer() {
     await channel.assertQueue("cursors");
     channel.consume("cursors", (message) => {
-      const input = JSON.parse(message.content.toString());
+      const output = JSON.parse(message.content.toString());
       channel.ack(message);
+      let {docId, index, length, session_id, name} = output;
+      console.log(session_id);
+      if (!(docId in recentCursors)) {
+        recentCursors[docId] = {}
+      }
+      recentCursors[docId][session_id] = {
+        index, length, name
+      }
     })
 }
 
@@ -74,7 +84,7 @@ function updateDocuments() {
       update, clientID, docId
     }
     channel.sendToQueue('event-updates', Buffer.from(JSON.stringify(updateQueueData)));
-      delete queueDict[docId];
+    delete queueDict[docId];
     let filter = {id: docId};
     persistence.storeUpdate(docId, update).then((res) => {
       Collection.findOneAndUpdate(filter, editTime);
@@ -82,7 +92,36 @@ function updateDocuments() {
   }
 }
 
+function updateCursors() {
+  for (let docId in recentCursors) {
+    for (let session_id in recentCursors[docId]) {
+      let cursor = recentCursors[docId][session_id]
+      let name = cursor.name;
+      let index = cursor.index;
+      let length = cursor.length;
+      cursorQueueData = {
+        docId,
+        session_id,
+        "name": name,
+        "index": index,
+        "length": length
+      }
+      channel.sendToQueue('event-cursors', Buffer.from(JSON.stringify(cursorQueueData)));
+      delete queueDict[session_id];
+      let filter = {docId: docId, session_id: session_id};
+      if (index == -1) {
+        Cursor.findOneAndDelete(filter);
+      }
+      else {
+        Cursor.findOneAndUpdate(filter, {name, length, index});
+      }
+    }
+    delete queueDict[docId];
+  }
+}
+
 function run() {
   console.log("running")
   setInterval(updateDocuments, 500);
+  setInterval(updateCursors, 1000);
 }
