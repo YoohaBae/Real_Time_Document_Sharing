@@ -7,7 +7,6 @@ let recentCursors = {};
 const { MongodbPersistence } = require('y-mongodb');
 const initialize = require('./rabbitmq');
 const persistence = new MongodbPersistence('mongodb://209.151.154.219:27017/Milestone', 'yDocs');
-const elasticClient = require("./elasticsearch")
 
 let connection, channel;
 initialize().then(async ([conn, chan]) => {
@@ -91,24 +90,7 @@ function updateDocuments() {
     let filter = {id: docId};
     persistence.storeUpdate(docId, update).then((res) => {
       Collection.findOneAndUpdate(filter, editTime);
-      persistence.getYDoc(docId).then((yDoc)=> {
-        let content = yDoc.getText('test2').toString();
-        try {
-          elasticClient.index({
-              index: 'docs',
-              id: docId,
-              refresh: true,
-              document: {
-                  content: content,
-                  suggest: {
-                      input: content.split(/[\r\n\s]+/)
-                  }
-              },
-          })
-        } catch (err){
-            console.log(err);
-        }
-      })
+      channel.sendToQueue('elastic', Buffer.from(JSON.stringify({"docId":docId})))
     })
   }
 }
