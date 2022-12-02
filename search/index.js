@@ -2,10 +2,32 @@ const express = require('express');
 const elasticClient = require("./elasticsearch");
 const User = require('./models/user-model');
 const Memcached = require('memcached')
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const db = require('./db');
+const path = require('path');
 
 
 const app = express()
 const port = 9001;
+
+app.use(cors({
+  credentials: true,
+  origin: ['http://localhost:3000', "http://iwomm.cse356.compas.cs.stonybrook.edu", "http://209.151.155.172/"]
+}));
+const directory = path.join(__dirname, '../');
+
+// app.use(express.static('public'))
+
+
+app.use(express.json({limit: '100mb'}));
+app.use(express.urlencoded({limit: '100mb', extended: true}));
+app.use(cookieParser());
+
+app.use((req, res, next) => {
+  res.setHeader('X-CSE356', '6306d39f58d8bb3ef7f6bc99');
+  next();
+});
 
 function getCache(key) {
   memcached.get(key, function(err, data) {
@@ -67,7 +89,7 @@ const auth = async (req, res, next) => {
   }
 };
   
-  app.use(auth);
+app.use(auth);
 
 app.get("/index/search", async (req, res) => {
     let query = req.query.q;
