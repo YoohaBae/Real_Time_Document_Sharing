@@ -24,12 +24,6 @@ if (cluster.isMaster) {
     for (let i = 0; i < numCPUs; i++) {
       cluster.fork();
     }
-
-    cluster.on('listening', function(worker, code, signal) {
-        setTimeout(function() {
-            worker.kill();
-        })
-    })
    
     // This event is firs when worker died
     cluster.on('exit', (worker, code, signal) => {
