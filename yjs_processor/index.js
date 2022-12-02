@@ -92,7 +92,7 @@ function updateDocuments() {
     persistence.storeUpdate(docId, update).then((res) => {
       Collection.findOneAndUpdate(filter, editTime);
       persistence.getYDoc(docId).then((yDoc)=> {
-        let content = yjs.get(yDoc, yjs.XmlText);
+        let content = yDoc.getText('test2').toString();
         try {
           elasticClient.index({
               index: 'docs',
