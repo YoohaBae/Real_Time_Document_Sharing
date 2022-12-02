@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const url = 'mongodb://localhost:27017/Milestone';
+const url = 'mongodb://209.151.154.219:27017/Milestone';
 mongoose.connect(url, { useNewUrlParser: true }).catch((e) => {
   console.error('Connection error', e.message);
 });

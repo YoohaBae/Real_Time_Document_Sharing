@@ -90,6 +90,24 @@ function updateDocuments() {
     let filter = {id: docId};
     persistence.storeUpdate(docId, update).then((res) => {
       Collection.findOneAndUpdate(filter, editTime);
+      persistence.getYDoc(docId).then((yDoc)=> {
+        let content = yjs.get(yDoc, yjs.XmlText);
+        try {
+          elasticClient.index({
+              index: 'docs',
+              id: docId,
+              refresh: true,
+              document: {
+                  content: content,
+                  suggest: {
+                      input: content.split(/[\r\n\s]+/)
+                  }
+              },
+          })
+        } catch (err){
+            console.log(err);
+        }
+      })
     })
   }
 }
