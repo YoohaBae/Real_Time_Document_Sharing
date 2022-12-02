@@ -7,6 +7,11 @@ let recentCursors = {};
 const { MongodbPersistence } = require('y-mongodb');
 const initialize = require('./rabbitmq');
 const persistence = new MongodbPersistence('mongodb://209.151.154.219:27017/Milestone', 'yDocs');
+const { EventEmitter } = require("node:events");
+
+
+const emitter = new EventEmitter()
+emitter.setMaxListeners(100)
 
 let connection, channel;
 initialize().then(async ([conn, chan]) => {
