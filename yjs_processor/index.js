@@ -143,6 +143,6 @@ function updateCursors() {
 
 function run() {
   console.log("running")
-  setInterval(updateDocuments, 500);
-  setInterval(updateCursors, 500);
+  setInterval(updateDocuments, 1000);
+  setInterval(updateCursors, 1000);
 }
