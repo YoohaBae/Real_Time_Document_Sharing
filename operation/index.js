@@ -3,8 +3,22 @@ const cookieParser = require('cookie-parser');
 const express = require('express');
 const initialize = require('./rabbitmq');
 const db = require("./db");
+const cluster = require('cluster');
 
-let connection, channel;
+const numCPUs = require('os').cpus().length;
+
+if (cluster.isMaster) {
+  // Fork workers.
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
+  }
+ 
+  // This event is firs when worker died
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(`worker ${worker.process.pid} died`);
+  });
+} else{
+  let connection, channel;
 initialize().then(([conn, chan]) => {
   connection = conn;
   channel = chan;
@@ -118,3 +132,4 @@ app.post('/api/op/:id', async (req, res) => {
 app.listen(port, () => {
     console.log(`server is listening at localhost:${port}`);
 });
+}
