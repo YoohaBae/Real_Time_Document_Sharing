@@ -1,42 +1,75 @@
 const express = require('express');
 const elasticClient = require("../elasticsearch");
 const User = require('../models/user-model');
+const Memcached = require('memcached')
+
 
 const app = express()
 const port = 9001;
 
+function getCache(key) {
+  memcached.get(key, function(err, data) {
+    if (err) {
+      console.log("error setting cache");
+      console.log(err);
+      return false;
+    }
+    else {
+      if (data) {
+        return true;
+      }
+    }
+  })
+}
+
+function setCache(key) {
+  memcached.set(key, 'true', 600, function(err) {
+    if (err) {
+      console.log("error setting cache");
+      console.log(err);
+    }
+  })
+}
+
 const auth = async (req, res, next) => {
-    const key = req.cookies.key;
-    if (!key) {
-      res.send({
-        error: true,
-        message: 'User is not authenticated',
-      });
-    } else {
+  const key = req.cookies.key;
+  if (!key) {
+    console.log("no key")
+    res.send({
+      error: true,
+      message: 'User is not authenticated',
+    });
+  } else {
+    if (!getCache(key)) {
       try {
         const user = await User.findOne({ key });
         if (!user) {
-        //   console.log("user not found")
+          console.log("user not auth")
           res.send({
             error: true,
             message: 'User is not authenticated',
           });
         } else {
+          setCache(key);
           next();
         }
-      } catch (err){
-        console.log(err)
+      } catch {
+        console.log("user not auth2")
         res.send({
           error: true,
           message: 'User is not authenticated',
         });
       }
     }
-  };
+    else {
+      console.log("cache login")
+    }
+  }
+};
   
   app.use(auth);
 
-app.get("/search", async (req, res) => {
+app.get("/index/search", async (req, res) => {
     let query = req.query.q;
     if (!query) {
         res.send({
@@ -97,7 +130,7 @@ app.get("/search", async (req, res) => {
     
 })
 
-app.get("/suggest", async (req, res) => {
+app.get("/index/suggest", async (req, res) => {
     let query = req.query.q;
     const data = await elasticClient.search({
       index: 'docs',
