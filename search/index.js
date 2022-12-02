@@ -1,6 +1,6 @@
 const express = require('express');
 const elasticClient = require("./elasticsearch");
-const User = require('../models/user-model');
+const User = require('./models/user-model');
 const Memcached = require('memcached')
 
 
