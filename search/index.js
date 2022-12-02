@@ -6,7 +6,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const db = require('./db');
 const path = require('path');
-const memcached = require('../memcached');
+const memcached = require('./memcached');
 
 
 const app = express()
