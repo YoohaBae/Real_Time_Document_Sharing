@@ -6,7 +6,7 @@ const queueDict = require('./queueDict');
 let recentCursors = {};
 const { MongodbPersistence } = require('y-mongodb');
 const initialize = require('./rabbitmq');
-const persistence = new MongodbPersistence('mongodb://localhost:27017/Milestone', 'yDocs');
+const persistence = new MongodbPersistence('mongodb://209.151.154.219:27017/Milestone', 'yDocs');
 const elasticClient = require("./elasticsearch")
 
 let connection, channel;

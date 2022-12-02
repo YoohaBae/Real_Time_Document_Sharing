@@ -3,7 +3,7 @@ const initialize = require('../rabbitmq');
 const Cursor = require('../models/cursor-model');
 const { MongodbPersistence } = require('y-mongodb');
 const yjs = require('yjs');
-const persistence = new MongodbPersistence('mongodb://localhost:27017/Milestone', 'yDocs');
+const persistence = new MongodbPersistence('mongodb://209.151.154.219:27017/Milestone', 'yDocs');
 let connection, channel;
 initialize().then(([conn, chan]) => {
   connection = conn;
