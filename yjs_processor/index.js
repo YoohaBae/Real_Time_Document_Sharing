@@ -36,6 +36,9 @@ async function runUpdateConsumer() {
       let docUpdate = queueDict[docId];
       let array = jsonToUint8Array(update);
       if (docUpdate) {
+        if (queueDict[docId]["clientID"] != clientID) {
+          clientID = "multi"
+        }
         queueDict[docId] = {
           "clientID": clientID,
           "update": [...docUpdate["update"], array],
@@ -58,7 +61,6 @@ async function runCursorConsumer() {
       const output = JSON.parse(message.content.toString());
       channel.ack(message);
       let {docId, index, length, session_id, name} = output;
-      console.log(session_id);
       if (!(docId in recentCursors)) {
         recentCursors[docId] = {}
       }
@@ -80,11 +82,11 @@ function updateDocuments() {
     else {
       update = updates[0];
     }
+    delete queueDict[docId];
     updateQueueData = {
       update, clientID, docId
     }
     channel.sendToQueue('event-updates', Buffer.from(JSON.stringify(updateQueueData)));
-    delete queueDict[docId];
     let filter = {id: docId};
     persistence.storeUpdate(docId, update).then((res) => {
       Collection.findOneAndUpdate(filter, editTime);
@@ -107,7 +109,7 @@ function updateCursors() {
         "length": length
       }
       channel.sendToQueue('event-cursors', Buffer.from(JSON.stringify(cursorQueueData)));
-      delete queueDict[session_id];
+      delete recentCursors[docId][session_id];
       let filter = {docId: docId, session_id: session_id};
       if (index == -1) {
         Cursor.findOneAndDelete(filter);
@@ -116,12 +118,12 @@ function updateCursors() {
         Cursor.findOneAndUpdate(filter, {name, length, index});
       }
     }
-    delete queueDict[docId];
+    delete recentCursors[docId];
   }
 }
 
 function run() {
   console.log("running")
   setInterval(updateDocuments, 500);
-  setInterval(updateCursors, 1000);
+  setInterval(updateCursors, 500);
 }
