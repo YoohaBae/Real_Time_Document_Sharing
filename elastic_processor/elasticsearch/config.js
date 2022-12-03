@@ -18,7 +18,6 @@ const createIndex = async (indexName) => {
                 // }, 
                 {
                     "settings": {
-                      "refresh_interval": '500ms',
                       "analysis": {
                         "filter": {
                           "english_stop": {

@@ -8,6 +8,11 @@ let connection, channel;
 initialize().then(([conn, chan]) => {
   connection = conn;
   channel = chan;
+
+  channel.assertExchange('event-updates', 'fanout', {
+    durable: false
+  })
+  
   runEventCursorConsumer();
   runEventUpdateConsumer();
 })
@@ -172,6 +177,8 @@ async function runEventUpdateConsumer() {
   channel.consume("event-updates", (message) => {
     const output = JSON.parse(message.content.toString());
     channel.ack(message);
+    console.log(output);
+    channel.ack(message);
     let {update, clientID, docId} = output;
     if ((docId in clients)) {
       for (let i=0; i < clients[docId].length; i++) {
@@ -192,6 +199,8 @@ async function runEventCursorConsumer() {
   await channel.assertQueue("event-cursors");
   channel.consume("event-cursors", (message) => {
     const output = JSON.parse(message.content.toString());
+    console.log(process.pid);
+    console.log(output);
     channel.ack(message);
     let {docId, session_id, name, index, length} = output;
     if ((docId in clients)) {

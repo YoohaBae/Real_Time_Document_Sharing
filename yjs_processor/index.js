@@ -91,7 +91,9 @@ function updateDocuments() {
     updateQueueData = {
       update, clientID, docId
     }
-    channel.sendToQueue('event-updates', Buffer.from(JSON.stringify(updateQueueData)));
+    channel.exchange_declare(exchange='event-updates', exchange_type='fanout')
+    channel.basic_publish(exchange='event-updates', routing_key='', body=Buffer.from(JSON.stringify(updateQueueData)))
+
     let filter = {id: docId};
     persistence.storeUpdate(docId, update).then((res) => {
       Collection.findOneAndUpdate(filter, editTime);
@@ -114,7 +116,7 @@ function updateCursors() {
         "index": index,
         "length": length
       }
-      channel.sendToQueue('event-cursors', Buffer.from(JSON.stringify(cursorQueueData)));
+      // channel.sendToQueue('event-cursors', Buffer.from(JSON.stringify(cursorQueueData)));
       delete recentCursors[docId][session_id];
       let filter = {docId: docId, session_id: session_id};
       if (index == -1) {
