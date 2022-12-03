@@ -173,32 +173,31 @@ async function runEventUpdateConsumer() {
   });
   await channel.assertQueue('', {
     exclusive: true
-  }, function(error, q) {
-    if (error) {
-      throw error;
-    }
-    channel.bindQueue(q.queue, "event-updates", '');
-    channel.consume(q.queue, (message) => {
-      const output = JSON.parse(message.content.toString());
-      console.log(process.pid);
-      console.log(output);
-      channel.ack(message);
-      let {update, clientID, docId} = output;
-      if ((docId in clients)) {
-        for (let i=0; i < clients[docId].length; i++) {
-          let client = clients[docId][i];
-          let updateEvent = "update";
-          // console.log(clientID);
-          let data = {
-            update, clientID
-          }
-          write(client["res"], eventID, updateEvent, data);
-        }
-        eventID++;
-      }
-    })
   });
-}
+  if (error) {
+    throw error;
+  }
+  channel.bindQueue(q.queue, "event-updates", '');
+  channel.consume(q.queue, (message) => {
+    const output = JSON.parse(message.content.toString());
+    console.log(process.pid);
+    console.log(output);
+    channel.ack(message);
+    let {update, clientID, docId} = output;
+    if ((docId in clients)) {
+      for (let i=0; i < clients[docId].length; i++) {
+        let client = clients[docId][i];
+        let updateEvent = "update";
+        // console.log(clientID);
+        let data = {
+          update, clientID
+        }
+        write(client["res"], eventID, updateEvent, data);
+      }
+      eventID++;
+    }
+  })
+};
 
 async function runEventCursorConsumer() {
   await channel.assertQueue("event-cursors");
