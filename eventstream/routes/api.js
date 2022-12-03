@@ -171,7 +171,7 @@ async function runEventUpdateConsumer() {
   channel.assertExchange('event-updates', 'fanout', {
     durable: true
   });
-  await channel.assertQueue('', {
+  q = await channel.assertQueue('', {
     exclusive: true
   });
   channel.bindQueue(q.queue, "event-updates", '');
