@@ -174,9 +174,6 @@ async function runEventUpdateConsumer() {
   await channel.assertQueue('', {
     exclusive: true
   });
-  if (error) {
-    throw error;
-  }
   channel.bindQueue(q.queue, "event-updates", '');
   channel.consume(q.queue, (message) => {
     const output = JSON.parse(message.content.toString());
