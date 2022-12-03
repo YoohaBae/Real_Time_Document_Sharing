@@ -158,7 +158,7 @@ router.get('/connect/:id', async (req, res) => {
       name
     };
     queue = 'cursors'
-    await channel.assertQueue(queue, {durable:true});
+    await channel.assertQueue(queue);
     channel.sendToQueue(queue, Buffer.from(JSON.stringify(cursorQueueData)), {
       persistent: true
     });
@@ -168,65 +168,51 @@ router.get('/connect/:id', async (req, res) => {
 let eventID = 10000;
 
 async function runEventUpdateConsumer() {
-  channel.assertExchange('event-updates', 'fanout', {
-    durable: true
-  });
-  q = await channel.assertQueue('', {
-    exclusive: true
-  });
-  channel.bindQueue(q.queue, "event-updates", '');
-  channel.consume(q.queue, (message) => {
+  await channel.assertQueue("event-updates");
+  channel.consume("event-updates", (message) => {
     const output = JSON.parse(message.content.toString());
-    console.log(process.pid);
-    console.log(output);
     channel.ack(message);
     let {update, clientID, docId} = output;
-    if ((docId in clients)) {
-      for (let i=0; i < clients[docId].length; i++) {
-        let client = clients[docId][i];
-        let updateEvent = "update";
-        // console.log(clientID);
-        let data = {
-          update, clientID
-        }
-        write(client["res"], eventID, updateEvent, data);
+    for (let i=0; i < clients[docId].length; i++) {
+      let client = clients[docId][i];
+      let updateEvent = "update";
+      // console.log(clientID);
+      let data = {
+        update, clientID
       }
-      eventID++;
+      write(client["res"], eventID, updateEvent, data);
     }
+    eventID++;
   })
-};
+}
 
 async function runEventCursorConsumer() {
   await channel.assertQueue("event-cursors");
   channel.consume("event-cursors", (message) => {
     const output = JSON.parse(message.content.toString());
-    console.log(process.pid);
-    console.log(output);
     channel.ack(message);
     let {docId, session_id, name, index, length} = output;
-    if ((docId in clients)) {
-      for (let i=0; i < clients[docId].length; i++) {
-        let client = clients[docId][i];
-        let presenceEvent = 'presence';
-        let message = null;
-        if (index == -1) {
-          message = {
-            session_id,
-            name,
-            cursor: {},
-          };
-        }
-        else {
-          message = {
-            session_id, 
-            name,
-            cursor: { index, length }
-          };
-        }
-        write(client["res"], eventID, presenceEvent, message);
+    for (let i=0; i < clients[docId].length; i++) {
+      let client = clients[docId][i];
+      let presenceEvent = 'presence';
+      let message = null;
+      if (index == -1) {
+        message = {
+          session_id,
+          name,
+          cursor: {},
+        };
       }
-      eventID++;
+      else {
+        message = {
+          session_id, 
+          name,
+          cursor: { index, length }
+        };
+      }
+      write(client["res"], eventID, presenceEvent, message);
     }
+    eventID++;
   })
 }
 module.exports = router;

@@ -1,19 +1,20 @@
 {
-  "name": "yjs_processor",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "amqplib": "^0.10.3",
-    "mongoose": "^6.7.4",
-    "mongoose-sequence": "^5.3.1",
-    "y-leveldb": "^0.1.1",
-    "y-mongodb": "^0.1.11",
-    "yjs": "^13.5.42"
+    "name": "yjs_processor",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+      "amqplib": "^0.10.3",
+      "mongoose": "^6.7.4",
+      "mongoose-sequence": "^5.3.1",
+      "y-leveldb": "^0.1.1",
+      "y-mongodb": "^0.1.11",
+      "yjs": "^13.5.42"
+    }
   }
-}
+  

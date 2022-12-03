@@ -5,6 +5,11 @@ const { MongodbPersistence } = require('y-mongodb');
 const initialize = require('./rabbitmq');
 const persistence = new MongodbPersistence('mongodb://209.151.154.219:27017/Milestone', 'yDocs');
 const elasticClient = require("./elasticsearch")
+const { EventEmitter } = require("node:events");
+
+
+const emitter = new EventEmitter()
+emitter.setMaxListeners(100)
 
 let connection, channel;
 initialize().then(async ([conn, chan]) => {
@@ -19,35 +24,35 @@ async function runElasticConsumer() {
   channel.consume("elastic", async (message) => {
     const output = JSON.parse(message.content.toString());
     channel.ack(message);
-    let docId = output;
+    let docId = output["docId"];
     set.add(docId);
   })
 }
 
 
 
-function updateIndex() {
-  for (let docId in set) {
-    persistence.getYDoc(docId).then((yDoc)=> {
-      let content = yDoc.getText('test2').toString();
-      try {
-        elasticClient.index({
-            index: 'docs',
-            id: docId,
-            refresh: true,
-            document: {
-                content: content,
-                suggest: {
-                    input: content.split(/[\r\n\s]+/)
-                }
-            },
-        })
-      } catch (err){
-          console.log(err);
-      }
-    })
+async function updateIndex() {
+  const op = []
+  for (let docId of set) {
+    let yDoc = await persistence.getYDoc(docId)
+    let content = yDoc.getText('test2').toString();
+    const doc = {
+    id: docId,
+    content: content,
+    suggest: {
+        input: content.split(/[\r\n\s]+/)
+    }
+  }
+    op.push(doc)
     set.delete(docId);
   }
+  const operations = op.flatMap(doc => [{index: {_index: "docs", _id: doc.id}}, doc])
+  if (operations.length > 0) elasticClient.bulk({refresh: true, operations})
+  // const document = await elasticClient.search({index: "docs", 
+  // query: {
+  //   "match_all": {}
+  // }})
+  // console.log(document.hits.hits[0]._source)
 }
 
 

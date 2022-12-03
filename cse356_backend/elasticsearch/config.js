@@ -56,13 +56,15 @@ const createIndex = async (indexName) => {
                         "type": "text",
                         "search_analyzer": "rebuilt_english",
                         "analyzer": "rebuilt_english",
-                        "search_quote_analyzer": "rebuilt_english"
+                        "search_quote_analyzer": "rebuilt_english",
+                        "term_vector": "with_positions_offsets",
                       },
                       "name": {
                         "type": "text",
                         "search_analyzer": "rebuilt_english",
                         "analyzer": "rebuilt_english",
-                        "search_quote_analyzer": "rebuilt_english"
+                        "search_quote_analyzer": "rebuilt_english",
+                        "term_vector": "with_positions_offsets",
                       }
                     }
                   }
