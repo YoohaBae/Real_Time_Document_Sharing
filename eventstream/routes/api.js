@@ -168,7 +168,9 @@ router.get('/connect/:id', async (req, res) => {
 let eventID = 10000;
 
 async function runEventUpdateConsumer() {
-  channel.assertExchange('event-updates', 'fanout');
+  channel.assertExchange('event-updates', 'fanout', {
+    durable: true
+  });
   await channel.assertQueue('', {
     exclusive: true
   }, function(error, q) {
