@@ -8,11 +8,6 @@ let connection, channel;
 initialize().then(([conn, chan]) => {
   connection = conn;
   channel = chan;
-
-  channel.assertExchange('event-updates', 'fanout', {
-    durable: false
-  })
-
   runEventCursorConsumer();
   runEventUpdateConsumer();
 })
@@ -173,7 +168,9 @@ router.get('/connect/:id', async (req, res) => {
 let eventID = 10000;
 
 async function runEventUpdateConsumer() {
+  channel.assertExchange('event-updates', 'fanout');
   await channel.assertQueue("event-updates");
+  channel.bindQueue("event-updates", "event-updates", '');
   channel.consume("event-updates", (message) => {
     const output = JSON.parse(message.content.toString());
     console.log(process.pid);
