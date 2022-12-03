@@ -173,16 +173,18 @@ async function runEventUpdateConsumer() {
     const output = JSON.parse(message.content.toString());
     channel.ack(message);
     let {update, clientID, docId} = output;
-    for (let i=0; i < clients[docId].length; i++) {
-      let client = clients[docId][i];
-      let updateEvent = "update";
-      // console.log(clientID);
-      let data = {
-        update, clientID
+    if ((docId in clients)) {
+      for (let i=0; i < clients[docId].length; i++) {
+        let client = clients[docId][i];
+        let updateEvent = "update";
+        // console.log(clientID);
+        let data = {
+          update, clientID
+        }
+        write(client["res"], eventID, updateEvent, data);
       }
-      write(client["res"], eventID, updateEvent, data);
+      eventID++;
     }
-    eventID++;
   })
 }
 
@@ -192,27 +194,29 @@ async function runEventCursorConsumer() {
     const output = JSON.parse(message.content.toString());
     channel.ack(message);
     let {docId, session_id, name, index, length} = output;
-    for (let i=0; i < clients[docId].length; i++) {
-      let client = clients[docId][i];
-      let presenceEvent = 'presence';
-      let message = null;
-      if (index == -1) {
-        message = {
-          session_id,
-          name,
-          cursor: {},
-        };
+    if ((docId in clients)) {
+      for (let i=0; i < clients[docId].length; i++) {
+        let client = clients[docId][i];
+        let presenceEvent = 'presence';
+        let message = null;
+        if (index == -1) {
+          message = {
+            session_id,
+            name,
+            cursor: {},
+          };
+        }
+        else {
+          message = {
+            session_id, 
+            name,
+            cursor: { index, length }
+          };
+        }
+        write(client["res"], eventID, presenceEvent, message);
       }
-      else {
-        message = {
-          session_id, 
-          name,
-          cursor: { index, length }
-        };
-      }
-      write(client["res"], eventID, presenceEvent, message);
+      eventID++;
     }
-    eventID++;
   })
 }
 module.exports = router;
