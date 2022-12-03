@@ -12,7 +12,7 @@ initialize().then(([conn, chan]) => {
   channel.assertExchange('event-updates', 'fanout', {
     durable: false
   })
-  
+
   runEventCursorConsumer();
   runEventUpdateConsumer();
 })
@@ -176,7 +176,7 @@ async function runEventUpdateConsumer() {
   await channel.assertQueue("event-updates");
   channel.consume("event-updates", (message) => {
     const output = JSON.parse(message.content.toString());
-    channel.ack(message);
+    console.log(process.pid);
     console.log(output);
     channel.ack(message);
     let {update, clientID, docId} = output;
