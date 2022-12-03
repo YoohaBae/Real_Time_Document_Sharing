@@ -91,8 +91,8 @@ function updateDocuments() {
     updateQueueData = {
       update, clientID, docId
     }
-    channel.exchange_declare(exchange='event-updates', exchange_type='fanout')
-    channel.basic_publish(exchange='event-updates', routing_key='', body=Buffer.from(JSON.stringify(updateQueueData)))
+    channel.assertQueue(exchange='event-updates', exchange_type='fanout')
+    channel.publish(exchange='event-updates', routing_key='', body=Buffer.from(JSON.stringify(updateQueueData)))
 
     let filter = {id: docId};
     persistence.storeUpdate(docId, update).then((res) => {
